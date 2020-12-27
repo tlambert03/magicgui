@@ -199,9 +199,13 @@
     <span class=k >else</span><span class=p >:</span>
         <span class=n >widget_class</span> <span class=o >=</span> <span class=n >widget_type</span>
 
-    <span class=k >assert</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >widget_class</span><span class=p >,</span> <span class=n >WidgetProtocol</span><span class=p >)</span> <span class=ow >or</span> <span class=n >_is_subclass</span><span class=p >(</span>
-        <span class=n >widget_class</span><span class=p >,</span> <span class=n >widgets</span><span class=o >.</span><span class=n >_bases</span><span class=o >.</span><span class=n >Widget</span>
-    <span class=p >)</span>
+    <span class=k >if</span> <span class=ow >not</span> <span class=p >(</span>
+        <span class=nb >isinstance</span><span class=p >(</span><span class=n >widget_class</span><span class=p >,</span> <span class=n >WidgetProtocol</span><span class=p >)</span>
+        <span class=ow >or</span> <span class=n >_is_subclass</span><span class=p >(</span><span class=n >widget_class</span><span class=p >,</span> <span class=n >widgets</span><span class=o >.</span><span class=n >_bases</span><span class=o >.</span><span class=n >Widget</span><span class=p >)</span>
+    <span class=p >):</span>
+        <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span>
+            <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >widget_class</span><span class=si >!r}</span><span class=s2 > does not implement any known widget protocols"</span>
+        <span class=p >)</span>
     <span class=k >return</span> <span class=n >widget_class</span><span class=p >,</span> <span class=n >_options</span></div>
 
 
