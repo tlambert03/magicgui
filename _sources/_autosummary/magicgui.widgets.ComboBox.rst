@@ -37,6 +37,7 @@
 
    .. autosummary::
    
+      ~ComboBox.annotation
       ~ComboBox.choices
       ~ComboBox.enabled
       ~ComboBox.label

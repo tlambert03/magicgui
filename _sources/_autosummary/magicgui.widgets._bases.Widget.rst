@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~Widget.annotation
       ~Widget.enabled
       ~Widget.label
       ~Widget.native

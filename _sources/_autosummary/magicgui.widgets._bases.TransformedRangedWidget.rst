@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~TransformedRangedWidget.annotation
       ~TransformedRangedWidget.enabled
       ~TransformedRangedWidget.label
       ~TransformedRangedWidget.max

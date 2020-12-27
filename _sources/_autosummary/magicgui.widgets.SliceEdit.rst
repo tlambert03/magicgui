@@ -76,6 +76,7 @@
 
    .. autosummary::
    
+      ~SliceEdit.annotation
       ~SliceEdit.enabled
       ~SliceEdit.label
       ~SliceEdit.labels

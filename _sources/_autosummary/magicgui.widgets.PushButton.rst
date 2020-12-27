@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~PushButton.annotation
       ~PushButton.enabled
       ~PushButton.label
       ~PushButton.native

@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~Slider.annotation
       ~Slider.enabled
       ~Slider.label
       ~Slider.max

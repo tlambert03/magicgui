@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~ValueWidget.annotation
       ~ValueWidget.enabled
       ~ValueWidget.label
       ~ValueWidget.native

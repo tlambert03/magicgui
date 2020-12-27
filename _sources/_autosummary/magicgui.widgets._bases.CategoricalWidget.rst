@@ -37,6 +37,7 @@
 
    .. autosummary::
    
+      ~CategoricalWidget.annotation
       ~CategoricalWidget.choices
       ~CategoricalWidget.enabled
       ~CategoricalWidget.label

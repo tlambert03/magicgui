@@ -76,6 +76,7 @@
 
    .. autosummary::
    
+      ~Container.annotation
       ~Container.enabled
       ~Container.label
       ~Container.labels

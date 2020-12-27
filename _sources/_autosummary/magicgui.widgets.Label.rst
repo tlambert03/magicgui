@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~Label.annotation
       ~Label.enabled
       ~Label.label
       ~Label.native

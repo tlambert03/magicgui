@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~DateTimeEdit.annotation
       ~DateTimeEdit.enabled
       ~DateTimeEdit.label
       ~DateTimeEdit.native

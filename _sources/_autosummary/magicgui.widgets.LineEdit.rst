@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~LineEdit.annotation
       ~LineEdit.enabled
       ~LineEdit.label
       ~LineEdit.native

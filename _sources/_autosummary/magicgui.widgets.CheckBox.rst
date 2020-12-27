@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~CheckBox.annotation
       ~CheckBox.enabled
       ~CheckBox.label
       ~CheckBox.native

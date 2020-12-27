@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~FloatSlider.annotation
       ~FloatSlider.enabled
       ~FloatSlider.label
       ~FloatSlider.max

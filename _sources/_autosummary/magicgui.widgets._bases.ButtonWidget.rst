@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~ButtonWidget.annotation
       ~ButtonWidget.enabled
       ~ButtonWidget.label
       ~ButtonWidget.native

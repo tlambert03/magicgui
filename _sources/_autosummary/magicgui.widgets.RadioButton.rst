@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~RadioButton.annotation
       ~RadioButton.enabled
       ~RadioButton.label
       ~RadioButton.native

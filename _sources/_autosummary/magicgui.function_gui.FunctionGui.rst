@@ -88,6 +88,7 @@
 
    .. autosummary::
    
+      ~FunctionGui.annotation
       ~FunctionGui.enabled
       ~FunctionGui.label
       ~FunctionGui.labels

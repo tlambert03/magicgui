@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~LiteralEvalLineEdit.annotation
       ~LiteralEvalLineEdit.enabled
       ~LiteralEvalLineEdit.label
       ~LiteralEvalLineEdit.native

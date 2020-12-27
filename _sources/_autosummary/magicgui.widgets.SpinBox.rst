@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~SpinBox.annotation
       ~SpinBox.enabled
       ~SpinBox.label
       ~SpinBox.max

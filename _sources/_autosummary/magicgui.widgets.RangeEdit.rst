@@ -76,6 +76,7 @@
 
    .. autosummary::
    
+      ~RangeEdit.annotation
       ~RangeEdit.enabled
       ~RangeEdit.label
       ~RangeEdit.labels

@@ -76,6 +76,7 @@
 
    .. autosummary::
    
+      ~FileEdit.annotation
       ~FileEdit.enabled
       ~FileEdit.label
       ~FileEdit.labels

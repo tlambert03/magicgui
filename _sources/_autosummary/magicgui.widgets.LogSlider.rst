@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~LogSlider.annotation
       ~LogSlider.base
       ~LogSlider.enabled
       ~LogSlider.label

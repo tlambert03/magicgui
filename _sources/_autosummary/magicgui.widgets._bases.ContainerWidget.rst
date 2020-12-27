@@ -76,6 +76,7 @@
 
    .. autosummary::
    
+      ~ContainerWidget.annotation
       ~ContainerWidget.enabled
       ~ContainerWidget.label
       ~ContainerWidget.labels

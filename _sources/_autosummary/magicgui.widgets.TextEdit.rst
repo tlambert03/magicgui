@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~TextEdit.annotation
       ~TextEdit.enabled
       ~TextEdit.label
       ~TextEdit.native

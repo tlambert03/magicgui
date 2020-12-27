@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      ~FloatSpinBox.annotation
       ~FloatSpinBox.enabled
       ~FloatSpinBox.label
       ~FloatSpinBox.max
