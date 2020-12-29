@@ -84,7 +84,6 @@
             <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=sa >f</span><span class=s2 >"FunctionGui got unexpected keyword argument</span><span class=si >{</span><span class=n >s</span><span class=si >}</span><span class=s2 >: </span><span class=si >{</span><span class=n >extra</span><span class=si >}</span><span class=s2 >"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_function</span> <span class=o >=</span> <span class=n >function</span>
         <span class=n >sig</span> <span class=o >=</span> <span class=n >magic_signature</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=n >gui_options</span><span class=o >=</span><span class=n >param_options</span><span class=p >)</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_return_annotation</span> <span class=o >=</span> <span class=n >sig</span><span class=o >.</span><span class=n >return_annotation</span>
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span>
             <span class=n >layout</span><span class=o >=</span><span class=n >layout</span><span class=p >,</span>
             <span class=n >labels</span><span class=o >=</span><span class=n >labels</span><span class=p >,</span>
@@ -208,7 +207,7 @@
             <span class=k >with</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >blocker</span><span class=p >():</span>
                 <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=n >value</span>
 
-        <span class=n >return_type</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_return_annotation</span>
+        <span class=n >return_type</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >return_annotation</span>
         <span class=k >if</span> <span class=n >return_type</span><span class=p >:</span>
             <span class=k >for</span> <span class=n >callback</span> <span class=ow >in</span> <span class=n >_type2callback</span><span class=p >(</span><span class=n >return_type</span><span class=p >):</span>
                 <span class=n >callback</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >,</span> <span class=n >return_type</span><span class=p >)</span>

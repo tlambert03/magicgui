@@ -87,6 +87,7 @@
       ~SliceEdit.options
       ~SliceEdit.param_kind
       ~SliceEdit.parent
+      ~SliceEdit.return_annotation
       ~SliceEdit.value
       ~SliceEdit.widget_type
       ~SliceEdit.width

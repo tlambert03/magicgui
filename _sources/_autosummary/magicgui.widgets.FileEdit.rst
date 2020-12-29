@@ -88,6 +88,7 @@
       ~FileEdit.options
       ~FileEdit.param_kind
       ~FileEdit.parent
+      ~FileEdit.return_annotation
       ~FileEdit.value
       ~FileEdit.widget_type
       ~FileEdit.width

@@ -100,6 +100,7 @@
       ~FunctionGui.param_kind
       ~FunctionGui.parent
       ~FunctionGui.result_name
+      ~FunctionGui.return_annotation
       ~FunctionGui.widget_type
       ~FunctionGui.width
    

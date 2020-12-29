@@ -87,6 +87,7 @@
       ~ContainerWidget.options
       ~ContainerWidget.param_kind
       ~ContainerWidget.parent
+      ~ContainerWidget.return_annotation
       ~ContainerWidget.widget_type
       ~ContainerWidget.width
    
