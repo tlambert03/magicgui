@@ -235,15 +235,16 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=n >source</span><span class=o >=</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"parent_changed"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >label_changed</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=n >source</span><span class=o >=</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"label_changed"</span><span class=p >)</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_bind_parent_change_callback</span><span class=p >(</span>
-            <span class=k >lambda</span> <span class=o >*</span><span class=n >x</span><span class=p >:</span> <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >parent</span><span class=p >)</span>
-        <span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_bind_parent_change_callback</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_emit_parent</span><span class=p >)</span>
 
         <span class=c1 ># put the magicgui widget on the native object...may cause error on some backend</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >native</span><span class=o >.</span><span class=n >_magic_widget</span> <span class=o >=</span> <span class=bp >self</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_post_init</span><span class=p >()</span>
         <span class=k >if</span> <span class=ow >not</span> <span class=n >visible</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=nf >_emit_parent</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >event</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >parent</span><span class=p >)</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >annotation</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
@@ -776,8 +777,8 @@
 
 <span class=sd >    Parameters</span>
 <span class=sd >    ----------</span>
-<span class=sd >    orientation : str, optional</span>
-<span class=sd >        The orientation for the container.  must be one of ``{'horizontal',</span>
+<span class=sd >    layout : str, optional</span>
+<span class=sd >        The layout for the container.  must be one of ``{'horizontal',</span>
 <span class=sd >        'vertical'}``. by default "horizontal"</span>
 <span class=sd >    widgets : Sequence[Widget], optional</span>
 <span class=sd >        A sequence of widgets with which to intialize the container, by default</span>
@@ -797,19 +798,20 @@
 
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span>
         <span class=bp >self</span><span class=p >,</span>
-        <span class=n >orientation</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
+        <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
         <span class=n >widgets</span><span class=p >:</span> <span class=n >Sequence</span><span class=p >[</span><span class=n >Widget</span><span class=p >]</span> <span class=o >=</span> <span class=p >(),</span>
         <span class=n >labels</span><span class=o >=</span><span class=kc >True</span><span class=p >,</span>
         <span class=n >return_annotation</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=o >**</span><span class=n >kwargs</span><span class=p >,</span>
     <span class=p >):</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_labels</span> <span class=o >=</span> <span class=n >labels</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_orientation</span> <span class=o >=</span> <span class=n >orientation</span>
-        <span class=n >kwargs</span><span class=p >[</span><span class=s2 >"backend_kwargs"</span><span class=p >]</span> <span class=o >=</span> <span class=p >{</span><span class=s2 >"orientation"</span><span class=p >:</span> <span class=n >orientation</span><span class=p >}</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_layout</span> <span class=o >=</span> <span class=n >layout</span>
+        <span class=n >kwargs</span><span class=p >[</span><span class=s2 >"backend_kwargs"</span><span class=p >]</span> <span class=o >=</span> <span class=p >{</span><span class=s2 >"layout"</span><span class=p >:</span> <span class=n >layout</span><span class=p >}</span>
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span><span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >changed</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=n >source</span><span class=o >=</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"changed"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_return_annotation</span> <span class=o >=</span> <span class=n >return_annotation</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >extend</span><span class=p >(</span><span class=n >widgets</span><span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span><span class=o >.</span><span class=n >connect</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >reset_choices</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_initialized</span> <span class=o >=</span> <span class=kc >True</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_unify_label_widths</span><span class=p >()</span>
 
@@ -917,7 +919,7 @@
     <span class=k >def</span> <span class=nf >_unify_label_widths</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >event</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
         <span class=k >if</span> <span class=ow >not</span> <span class=bp >self</span><span class=o >.</span><span class=n >_initialized</span><span class=p >:</span>
             <span class=k >return</span>
-        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >orientation</span> <span class=o >==</span> <span class=s2 >"vertical"</span> <span class=ow >and</span> <span class=bp >self</span><span class=o >.</span><span class=n >labels</span> <span class=ow >and</span> <span class=nb >len</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >layout</span> <span class=o >==</span> <span class=s2 >"vertical"</span> <span class=ow >and</span> <span class=bp >self</span><span class=o >.</span><span class=n >labels</span> <span class=ow >and</span> <span class=nb >len</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
             <span class=n >measure</span> <span class=o >=</span> <span class=n >use_app</span><span class=p >()</span><span class=o >.</span><span class=n >get_obj</span><span class=p >(</span><span class=s2 >"get_text_width"</span><span class=p >)</span>
             <span class=n >widest_label</span> <span class=o >=</span> <span class=nb >max</span><span class=p >(</span>
                 <span class=n >measure</span><span class=p >(</span><span class=n >w</span><span class=o >.</span><span class=n >label</span><span class=p >)</span> <span class=k >for</span> <span class=n >w</span> <span class=ow >in</span> <span class=bp >self</span> <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >w</span><span class=p >,</span> <span class=n >ButtonWidget</span><span class=p >)</span>
@@ -938,14 +940,14 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_margins</span><span class=p >(</span><span class=n >margins</span><span class=p >)</span>
 
     <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
-        <span class=sd >"""Return the orientation of the widget."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_orientation</span>
+    <span class=k >def</span> <span class=nf >layout</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Return the layout of the widget."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_layout</span>
 
-    <span class=nd >@orientation</span><span class=o >.</span><span class=n >setter</span>
-    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
+    <span class=nd >@layout</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >layout</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >(</span>
-            <span class=s2 >"It is not yet possible to change orientation after instantiation"</span>
+            <span class=s2 >"It is not yet possible to change layout after instantiation"</span>
         <span class=p >)</span>
 
     <span class=nd >@property</span>

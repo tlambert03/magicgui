@@ -80,11 +80,11 @@
       ~SliceEdit.enabled
       ~SliceEdit.label
       ~SliceEdit.labels
+      ~SliceEdit.layout
       ~SliceEdit.margins
       ~SliceEdit.native
       ~SliceEdit.native_layout
       ~SliceEdit.options
-      ~SliceEdit.orientation
       ~SliceEdit.param_kind
       ~SliceEdit.parent
       ~SliceEdit.value

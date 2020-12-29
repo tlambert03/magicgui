@@ -80,11 +80,11 @@
       ~RangeEdit.enabled
       ~RangeEdit.label
       ~RangeEdit.labels
+      ~RangeEdit.layout
       ~RangeEdit.margins
       ~RangeEdit.native
       ~RangeEdit.native_layout
       ~RangeEdit.options
-      ~RangeEdit.orientation
       ~RangeEdit.param_kind
       ~RangeEdit.parent
       ~RangeEdit.value

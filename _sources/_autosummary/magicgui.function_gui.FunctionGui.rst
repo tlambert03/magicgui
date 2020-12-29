@@ -92,11 +92,11 @@
       ~FunctionGui.enabled
       ~FunctionGui.label
       ~FunctionGui.labels
+      ~FunctionGui.layout
       ~FunctionGui.margins
       ~FunctionGui.native
       ~FunctionGui.native_layout
       ~FunctionGui.options
-      ~FunctionGui.orientation
       ~FunctionGui.param_kind
       ~FunctionGui.parent
       ~FunctionGui.result_name

@@ -80,11 +80,11 @@
       ~Container.enabled
       ~Container.label
       ~Container.labels
+      ~Container.layout
       ~Container.margins
       ~Container.native
       ~Container.native_layout
       ~Container.options
-      ~Container.orientation
       ~Container.param_kind
       ~Container.parent
       ~Container.widget_type
