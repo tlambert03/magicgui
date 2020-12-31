@@ -41,6 +41,7 @@
       ~SliderWidget.min
       ~SliderWidget.native
       ~SliderWidget.options
+      ~SliderWidget.orientation
       ~SliderWidget.param_kind
       ~SliderWidget.parent
       ~SliderWidget.range

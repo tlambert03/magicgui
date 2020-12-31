@@ -41,6 +41,7 @@
       ~FloatSlider.min
       ~FloatSlider.native
       ~FloatSlider.options
+      ~FloatSlider.orientation
       ~FloatSlider.param_kind
       ~FloatSlider.parent
       ~FloatSlider.range

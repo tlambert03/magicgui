@@ -222,8 +222,7 @@
         <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >_prot</span><span class=p >,</span> <span class=nb >str</span><span class=p >):</span>
             <span class=n >_prot</span> <span class=o >=</span> <span class=n >_prot</span><span class=o >.</span><span class=vm >__name__</span>
         <span class=n >prot</span> <span class=o >=</span> <span class=nb >getattr</span><span class=p >(</span><span class=n >_protocols</span><span class=p >,</span> <span class=n >_prot</span><span class=o >.</span><span class=n >replace</span><span class=p >(</span><span class=s2 >"_protocols."</span><span class=p >,</span> <span class=s2 >""</span><span class=p >))</span>
-        <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >widget_type</span><span class=p >,</span> <span class=n >prot</span><span class=p >):</span>
-            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >widget_type</span><span class=si >!r}</span><span class=s2 > does not implement the proper protocol"</span><span class=p >)</span>
+        <span class=n >_protocols</span><span class=o >.</span><span class=n >assert_protocol</span><span class=p >(</span><span class=n >widget_type</span><span class=p >,</span> <span class=n >prot</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span> <span class=o >=</span> <span class=n >use_app</span><span class=p >()</span>
         <span class=k >assert</span> <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=n >native</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span> <span class=o >=</span> <span class=n >widget_type</span><span class=p >(</span><span class=o >**</span><span class=n >backend_kwargs</span><span class=p >)</span>
@@ -633,7 +632,26 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=n >prev</span></div>
 
 
-<div class=viewcode-block  id=SliderWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.SliderWidget.html#magicgui.widgets._bases.SliderWidget">[docs]</a><span class=k >class</span> <span class=nc >SliderWidget</span><span class=p >(</span><span class=n >RangedWidget</span><span class=p >):</span>
+<span class=k >class</span> <span class=nc >_OrientationMixin</span><span class=p >:</span>
+    <span class=sd >"""Properties for classes wrapping widgets that support orientation."""</span>
+
+    <span class=n >_widget</span><span class=p >:</span> <span class=n >_protocols</span><span class=o >.</span><span class=n >SupportsOrientation</span>
+
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Orientation of the widget."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_orientation</span><span class=p >()</span>
+
+    <span class=nd >@orientation</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >str</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=k >if</span> <span class=n >value</span> <span class=ow >not</span> <span class=ow >in</span> <span class=p >{</span><span class=s2 >"horizontal"</span><span class=p >,</span> <span class=s2 >"vertical"</span><span class=p >}:</span>
+            <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span>
+                <span class=s2 >"Only horizontal and vertical orientation are currently supported"</span>
+            <span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_orientation</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
+
+
+<div class=viewcode-block  id=SliderWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.SliderWidget.html#magicgui.widgets._bases.SliderWidget">[docs]</a><span class=k >class</span> <span class=nc >SliderWidget</span><span class=p >(</span><span class=n >RangedWidget</span><span class=p >,</span> <span class=n >_OrientationMixin</span><span class=p >):</span>
     <span class=sd >"""Widget with a contstrained value and orientation. Wraps SliderWidgetProtocol.</span>
 
 <span class=sd >    Parameters</span>
@@ -753,7 +771,7 @@
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_choices</span><span class=p >(</span><span class=n >_choices</span><span class=p >)</span></div>
 
 
-<div class=viewcode-block  id=ContainerWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.ContainerWidget.html#magicgui.widgets._bases.ContainerWidget">[docs]</a><span class=k >class</span> <span class=nc >ContainerWidget</span><span class=p >(</span><span class=n >Widget</span><span class=p >,</span> <span class=n >MutableSequence</span><span class=p >[</span><span class=n >Widget</span><span class=p >]):</span>
+<div class=viewcode-block  id=ContainerWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.ContainerWidget.html#magicgui.widgets._bases.ContainerWidget">[docs]</a><span class=k >class</span> <span class=nc >ContainerWidget</span><span class=p >(</span><span class=n >Widget</span><span class=p >,</span> <span class=n >_OrientationMixin</span><span class=p >,</span> <span class=n >MutableSequence</span><span class=p >[</span><span class=n >Widget</span><span class=p >]):</span>
     <span class=sd >"""Widget that can contain other widgets.</span>
 
 <span class=sd >    Wraps a widget that implements</span>

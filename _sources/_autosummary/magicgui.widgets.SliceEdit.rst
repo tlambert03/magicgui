@@ -85,6 +85,7 @@
       ~SliceEdit.native
       ~SliceEdit.native_layout
       ~SliceEdit.options
+      ~SliceEdit.orientation
       ~SliceEdit.param_kind
       ~SliceEdit.parent
       ~SliceEdit.return_annotation

@@ -86,6 +86,7 @@
       ~FileEdit.native
       ~FileEdit.native_layout
       ~FileEdit.options
+      ~FileEdit.orientation
       ~FileEdit.param_kind
       ~FileEdit.parent
       ~FileEdit.return_annotation

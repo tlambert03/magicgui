@@ -85,6 +85,7 @@
       ~ContainerWidget.native
       ~ContainerWidget.native_layout
       ~ContainerWidget.options
+      ~ContainerWidget.orientation
       ~ContainerWidget.param_kind
       ~ContainerWidget.parent
       ~ContainerWidget.return_annotation

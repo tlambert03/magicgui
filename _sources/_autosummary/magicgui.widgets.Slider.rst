@@ -41,6 +41,7 @@
       ~Slider.min
       ~Slider.native
       ~Slider.options
+      ~Slider.orientation
       ~Slider.param_kind
       ~Slider.parent
       ~Slider.range

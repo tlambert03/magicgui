@@ -10,7 +10,7 @@
 <span class=kn >from</span> <span class=nn >__future__</span> <span class=kn >import</span> <span class=n >annotations</span>
 
 <span class=kn >from</span> <span class=nn >abc</span> <span class=kn >import</span> <span class=n >ABC</span><span class=p >,</span> <span class=n >abstractmethod</span>
-<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Iterable</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Tuple</span>
+<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Iterable</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Tuple</span><span class=p >,</span> <span class=n >Type</span>
 
 <span class=kn >from</span> <span class=nn >typing_extensions</span> <span class=kn >import</span> <span class=n >Protocol</span><span class=p >,</span> <span class=n >runtime_checkable</span>
 
@@ -20,9 +20,32 @@
     <span class=kn >from</span> <span class=nn >magicgui.widgets._bases</span> <span class=kn >import</span> <span class=n >Widget</span>
 
 
+<span class=k >def</span> <span class=nf >assert_protocol</span><span class=p >(</span><span class=n >widget_class</span><span class=p >:</span> <span class=n >Type</span><span class=p >,</span> <span class=n >protocol</span><span class=p >:</span> <span class=n >Type</span><span class=p >):</span>
+    <span class=sd >"""Ensure that widget_class implements protocol, or raise helpful error."""</span>
+    <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >widget_class</span><span class=p >,</span> <span class=n >protocol</span><span class=p >):</span>
+        <span class=n >_raise_protocol_error</span><span class=p >(</span><span class=n >widget_class</span><span class=p >,</span> <span class=n >protocol</span><span class=p >)</span>
+
+
+<span class=k >def</span> <span class=nf >_raise_protocol_error</span><span class=p >(</span><span class=n >widget_class</span><span class=p >:</span> <span class=n >Type</span><span class=p >,</span> <span class=n >protocol</span><span class=p >:</span> <span class=n >Type</span><span class=p >):</span>
+    <span class=sd >"""Raise a more helpful error when required protocol members are missing."""</span>
+    <span class=n >missing</span> <span class=o >=</span> <span class=p >{</span>
+        <span class=n >i</span>
+        <span class=k >for</span> <span class=n >i</span> <span class=ow >in</span> <span class=nb >set</span><span class=p >(</span><span class=nb >dir</span><span class=p >(</span><span class=n >protocol</span><span class=p >))</span> <span class=o >-</span> <span class=nb >set</span><span class=p >(</span><span class=nb >dir</span><span class=p >(</span><span class=n >widget_class</span><span class=p >))</span>
+        <span class=k >if</span> <span class=ow >not</span> <span class=n >i</span><span class=o >.</span><span class=n >startswith</span><span class=p >((</span><span class=s2 >"__"</span><span class=p >,</span> <span class=s2 >"_is_protocol"</span><span class=p >,</span> <span class=s2 >"_is_runtime"</span><span class=p >,</span> <span class=s2 >"_abc_impl"</span><span class=p >))</span>
+    <span class=p >}</span>
+    <span class=n >message</span> <span class=o >=</span> <span class=p >(</span>
+        <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >widget_class</span><span class=si >!r}</span><span class=s2 > does not implement </span><span class=si >{</span><span class=n >protocol</span><span class=o >.</span><span class=vm >__name__</span><span class=si >!r}</span><span class=s2 >.</span><span class=se >\n</span><span class=s2 >"</span>
+        <span class=sa >f</span><span class=s2 >"Missing methods: </span><span class=si >{</span><span class=n >missing</span><span class=si >!r}</span><span class=s2 >"</span>
+    <span class=p >)</span>
+    <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=n >message</span><span class=p >)</span>
+
+
 <div class=viewcode-block  id=WidgetProtocol ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol">[docs]</a><span class=nd >@runtime_checkable</span>
 <span class=k >class</span> <span class=nc >WidgetProtocol</span><span class=p >(</span><span class=n >Protocol</span><span class=p >):</span>
     <span class=sd >"""Base Widget Protocol: specifies methods that all widgets must provide."""</span>
+
+    <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+        <span class=k >pass</span>
 
 <div class=viewcode-block  id=WidgetProtocol._mgui_show_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_show_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_show_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
@@ -187,21 +210,8 @@
 <span class=k >class</span> <span class=nc >SupportsOrientation</span><span class=p >(</span><span class=n >Protocol</span><span class=p >):</span>
     <span class=sd >"""Widget that can be reoriented."""</span>
 
-    <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
-        <span class=sd >"""Orientation of the widget."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_mgui_get_orientation</span><span class=p >()</span>
-
-    <span class=nd >@orientation</span><span class=o >.</span><span class=n >setter</span>
-    <span class=k >def</span> <span class=nf >orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >str</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=k >if</span> <span class=n >value</span> <span class=ow >not</span> <span class=ow >in</span> <span class=p >{</span><span class=s2 >"horizontal"</span><span class=p >,</span> <span class=s2 >"vertical"</span><span class=p >}:</span>
-            <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span>
-                <span class=s2 >"Only horizontal and vertical orientation are currently supported"</span>
-            <span class=p >)</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_mgui_set_orientation</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
-
 <div class=viewcode-block  id=SupportsOrientation._mgui_set_orientation ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsOrientation.html#magicgui.widgets._protocols.SupportsOrientation._mgui_set_orientation">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_set_orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_orientation</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >str</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=sd >"""Set orientation, value will be 'horizontal' or 'vertical'."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 

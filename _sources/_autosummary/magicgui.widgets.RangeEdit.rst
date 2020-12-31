@@ -85,6 +85,7 @@
       ~RangeEdit.native
       ~RangeEdit.native_layout
       ~RangeEdit.options
+      ~RangeEdit.orientation
       ~RangeEdit.param_kind
       ~RangeEdit.parent
       ~RangeEdit.return_annotation
