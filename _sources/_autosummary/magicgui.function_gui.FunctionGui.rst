@@ -62,6 +62,9 @@
       ~FunctionGui.render
       
       
+      ~FunctionGui.reset_call_count
+      
+      
       ~FunctionGui.reset_choices
       
       
@@ -89,6 +92,7 @@
    .. autosummary::
    
       ~FunctionGui.annotation
+      ~FunctionGui.call_count
       ~FunctionGui.enabled
       ~FunctionGui.label
       ~FunctionGui.labels

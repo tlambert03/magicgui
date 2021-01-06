@@ -488,6 +488,18 @@
     <span class=n >_widget</span><span class=p >:</span> <span class=n >_protocols</span><span class=o >.</span><span class=n >RangedWidgetProtocol</span>
 
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=nb >min</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=mi >0</span><span class=p >,</span> <span class=nb >max</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=mi >100</span><span class=p >,</span> <span class=n >step</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=mi >1</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+        <span class=k >for</span> <span class=n >key</span> <span class=ow >in</span> <span class=p >(</span><span class=s2 >"maximum"</span><span class=p >,</span> <span class=s2 >"minimum"</span><span class=p >):</span>
+            <span class=k >if</span> <span class=n >key</span> <span class=ow >in</span> <span class=n >kwargs</span><span class=p >:</span>
+                <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
+                    <span class=sa >f</span><span class=s2 >"The </span><span class=si >{</span><span class=n >key</span><span class=si >!r}</span><span class=s2 > keyword arguments has been changed to </span><span class=si >{</span><span class=n >key</span><span class=p >[:</span><span class=mi >3</span><span class=p >]</span><span class=si >!r}</span><span class=s2 >. "</span>
+                    <span class=s2 >"In the future this will raise an exception</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
+                    <span class=ne >FutureWarning</span><span class=p >,</span>
+                <span class=p >)</span>
+                <span class=k >if</span> <span class=n >key</span> <span class=o >==</span> <span class=s2 >"maximum"</span><span class=p >:</span>
+                    <span class=nb >max</span> <span class=o >=</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >key</span><span class=p >)</span>
+                <span class=k >else</span><span class=p >:</span>
+                    <span class=nb >min</span> <span class=o >=</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >key</span><span class=p >)</span>
+
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span><span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >min</span> <span class=o >=</span> <span class=nb >min</span>
@@ -752,12 +764,13 @@
                 <span class=n >n_params</span> <span class=o >=</span> <span class=nb >len</span><span class=p >(</span><span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >choices</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span><span class=p >)</span>
                 <span class=k >if</span> <span class=n >n_params</span> <span class=o >&gt;</span> <span class=mi >1</span><span class=p >:</span>
                     <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
-                        <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >As of magicgui 0.2.0, a `choices` callable may accept only"</span>
-                        <span class=s2 >" a single positional</span><span class=se >\n</span><span class=s2 >argument (an instance of "</span>
-                        <span class=s2 >"`magicgui.widgets.CategoricalWidget`), and must return</span><span class=se >\n</span><span class=s2 >an "</span>
-                        <span class=sa >f</span><span class=s2 >"iterable (the choices to show). Function </span><span class=si >{</span><span class=n >choices</span><span class=o >.</span><span class=vm >__name__</span><span class=si >!r}</span><span class=s2 >"</span>
-                        <span class=sa >f</span><span class=s2 >" accepts </span><span class=si >{</span><span class=n >n_params</span><span class=si >}</span><span class=s2 > arguments.</span><span class=se >\n</span><span class=s2 >"</span>
-                        <span class=s2 >"In the future, this will raise an exception.</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
+                        <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >As of magicgui 0.2.0, when providing a callable to "</span>
+                        <span class=s2 >"`choices`, the</span><span class=se >\n</span><span class=s2 >callable may accept only a single positional "</span>
+                        <span class=s2 >"argument (which will</span><span class=se >\n</span><span class=s2 >be an instance of "</span>
+                        <span class=s2 >"`magicgui.widgets._bases.CategoricalWidget`),</span><span class=se >\n</span><span class=s2 >and must "</span>
+                        <span class=s2 >"return an iterable (the choices to show).</span><span class=se >\n</span><span class=s2 >Function "</span>
+                        <span class=sa >f</span><span class=s2 >"'</span><span class=si >{</span><span class=n >choices</span><span class=o >.</span><span class=vm >__module__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >choices</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >' accepts </span><span class=si >{</span><span class=n >n_params</span><span class=si >}</span><span class=s2 > "</span>
+                        <span class=s2 >"arguments.</span><span class=se >\n</span><span class=s2 >In the future, this will raise an exception.</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
                         <span class=ne >FutureWarning</span><span class=p >,</span>
                     <span class=p >)</span>
                     <span class=c1 ># pre 0.2.0 API</span>
@@ -1055,4 +1068,4 @@
         <span class=k >for</span> <span class=n >index</span><span class=p >,</span> <span class=n >_</span> <span class=ow >in</span> <span class=nb >enumerate</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
             <span class=n >widget</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >index</span><span class=p >)</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >insert</span><span class=p >(</span><span class=n >index</span><span class=p >,</span> <span class=n >widget</span><span class=p >)</span></div>
-</pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.1. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+</pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.2. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>

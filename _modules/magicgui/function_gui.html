@@ -97,6 +97,7 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=s2 >""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=n >bind</span><span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span><span class=p >:</span> <span class=nb >int</span> <span class=o >=</span> <span class=mi >0</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >PushButton</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
         <span class=k >if</span> <span class=n >call_button</span><span class=p >:</span>
@@ -118,6 +119,15 @@
 
         <span class=k >if</span> <span class=n >show</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
+
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Return the number of times the function has been called."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span>
+
+    <span class=k >def</span> <span class=nf >reset_call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Reset the call count to 0."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >=</span> <span class=mi >0</span>
 
     <span class=k >def</span> <span class=nf >bind</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >kwargs</span><span class=p >:</span> <span class=nb >dict</span><span class=p >):</span>
         <span class=sd >"""Bind key/value pairs to the function signature.</span>
@@ -203,6 +213,7 @@
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
         <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >+=</span> <span class=mi >1</span>
         <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
             <span class=k >with</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >blocker</span><span class=p >():</span>
                 <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=n >value</span>
@@ -404,4 +415,4 @@
         <span class=k >return</span> <span class=n >inner_func</span>
     <span class=k >else</span><span class=p >:</span>
         <span class=k >return</span> <span class=n >inner_func</span><span class=p >(</span><span class=n >function</span><span class=p >)</span></div>
-</pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.1. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+</pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.2. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
