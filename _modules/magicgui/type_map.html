@@ -5,6 +5,7 @@
 <span class=kn >import</span> <span class=nn >pathlib</span>
 <span class=kn >import</span> <span class=nn >sys</span>
 <span class=kn >import</span> <span class=nn >types</span>
+<span class=kn >import</span> <span class=nn >warnings</span>
 <span class=kn >from</span> <span class=nn >collections</span> <span class=kn >import</span> <span class=n >abc</span><span class=p >,</span> <span class=n >defaultdict</span>
 <span class=kn >from</span> <span class=nn >enum</span> <span class=kn >import</span> <span class=n >EnumMeta</span>
 <span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >Any</span><span class=p >,</span> <span class=n >DefaultDict</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >ForwardRef</span><span class=p >,</span> <span class=n >List</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Tuple</span><span class=p >,</span> <span class=n >Type</span><span class=p >,</span> <span class=n >cast</span>
@@ -101,6 +102,8 @@
         <span class=nb >float</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >FloatSpinBox</span><span class=p >,</span>
         <span class=nb >str</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >LineEdit</span><span class=p >,</span>
         <span class=n >pathlib</span><span class=o >.</span><span class=n >Path</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >FileEdit</span><span class=p >,</span>
+        <span class=n >datetime</span><span class=o >.</span><span class=n >time</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >TimeEdit</span><span class=p >,</span>
+        <span class=n >datetime</span><span class=o >.</span><span class=n >date</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >DateEdit</span><span class=p >,</span>
         <span class=n >datetime</span><span class=o >.</span><span class=n >datetime</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >DateTimeEdit</span><span class=p >,</span>
         <span class=nb >type</span><span class=p >(</span><span class=kc >None</span><span class=p >):</span> <span class=n >widgets</span><span class=o >.</span><span class=n >LiteralEvalLineEdit</span><span class=p >,</span>
         <span class=n >Any</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >LiteralEvalLineEdit</span><span class=p >,</span>
@@ -276,10 +279,12 @@
     <span class=n >_options</span> <span class=o >=</span> <span class=n >cast</span><span class=p >(</span><span class=n >WidgetOptions</span><span class=p >,</span> <span class=n >options</span><span class=p >)</span>
 
     <span class=k >if</span> <span class=s2 >"choices"</span> <span class=ow >in</span> <span class=n >_options</span><span class=p >:</span>
+        <span class=n >_choices</span> <span class=o >=</span> <span class=n >_options</span><span class=p >[</span><span class=s2 >"choices"</span><span class=p >]</span>
+
+        <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >_choices</span><span class=p >,</span> <span class=n >EnumMeta</span><span class=p >)</span> <span class=ow >and</span> <span class=n >callable</span><span class=p >(</span><span class=n >_choices</span><span class=p >):</span>
+            <span class=n >_options</span><span class=p >[</span><span class=s2 >"choices"</span><span class=p >]</span> <span class=o >=</span> <span class=n >_check_choices</span><span class=p >(</span><span class=n >_choices</span><span class=p >)</span>
         <span class=n >_TYPE_DEFS</span><span class=p >[</span><span class=n >type_</span><span class=p >]</span> <span class=o >=</span> <span class=p >(</span><span class=n >widgets</span><span class=o >.</span><span class=n >ComboBox</span><span class=p >,</span> <span class=n >_options</span><span class=p >)</span>
         <span class=k >if</span> <span class=n >widget_type</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=kn >import</span> <span class=nn >warnings</span>
-
             <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
                 <span class=s2 >"Providing `choices` overrides `widget_type`. Categorical widget will "</span>
                 <span class=sa >f</span><span class=s2 >"be used for type </span><span class=si >{</span><span class=n >type_</span><span class=si >}</span><span class=s2 >"</span>
@@ -293,6 +298,28 @@
         <span class=n >_TYPE_DEFS</span><span class=p >[</span><span class=n >type_</span><span class=p >]</span> <span class=o >=</span> <span class=p >(</span><span class=n >widget_type</span><span class=p >,</span> <span class=n >_options</span><span class=p >)</span>
 
     <span class=k >return</span> <span class=kc >None</span></div>
+
+
+<span class=k >def</span> <span class=nf >_check_choices</span><span class=p >(</span><span class=n >choices</span><span class=p >):</span>
+    <span class=sd >"""Catch pre 0.2.0 API from developers using register_type."""</span>
+    <span class=n >n_params</span> <span class=o >=</span> <span class=nb >len</span><span class=p >(</span><span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >choices</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span><span class=p >)</span>
+    <span class=k >if</span> <span class=n >n_params</span> <span class=o >&gt;</span> <span class=mi >1</span><span class=p >:</span>
+        <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
+            <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >DEVELOPER NOTICE: As of magicgui 0.2.0, when providing a callable to "</span>
+            <span class=s2 >"`choices`, the</span><span class=se >\n</span><span class=s2 >callable may accept only a single positional "</span>
+            <span class=s2 >"argument (which will be an instance of</span><span class=se >\n</span><span class=s2 >"</span>
+            <span class=s2 >"`magicgui.widgets._bases.CategoricalWidget`), and must "</span>
+            <span class=s2 >"return an iterable (the choices</span><span class=se >\n</span><span class=s2 >to show).  Function "</span>
+            <span class=sa >f</span><span class=s2 >"'</span><span class=si >{</span><span class=n >choices</span><span class=o >.</span><span class=vm >__module__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >choices</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >' accepts </span><span class=si >{</span><span class=n >n_params</span><span class=si >}</span><span class=s2 > "</span>
+            <span class=s2 >"arguments.</span><span class=se >\n</span><span class=s2 >In the future, this will raise an exception.</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
+            <span class=ne >DeprecationWarning</span><span class=p >,</span>
+        <span class=p >)</span>
+
+        <span class=k >def</span> <span class=nf >wrapper</span><span class=p >(</span><span class=n >obj</span><span class=p >):</span>
+            <span class=k >return</span> <span class=n >choices</span><span class=p >(</span><span class=n >obj</span><span class=o >.</span><span class=n >native</span><span class=p >,</span> <span class=n >obj</span><span class=o >.</span><span class=n >annotation</span><span class=p >)</span>
+
+        <span class=k >return</span> <span class=n >wrapper</span>
+    <span class=k >return</span> <span class=n >choices</span>
 
 
 <span class=k >def</span> <span class=nf >_type2callback</span><span class=p >(</span><span class=n >type_</span><span class=p >:</span> <span class=nb >type</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >List</span><span class=p >[</span><span class=n >ReturnCallback</span><span class=p >]:</span>
