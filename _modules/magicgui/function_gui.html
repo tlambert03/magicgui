@@ -78,7 +78,7 @@
     <span class=p >):</span>
         <span class=n >bind</span> <span class=o >=</span> <span class=n >bind</span> <span class=ow >or</span> <span class=nb >dict</span><span class=p >()</span>
         <span class=c1 ># consume extra Widget keywords</span>
-        <span class=n >extra</span> <span class=o >=</span> <span class=nb >set</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=o >-</span> <span class=p >{</span><span class=s2 >"annotation"</span><span class=p >,</span> <span class=s2 >"gui_only"</span><span class=p >}</span>
+        <span class=n >extra</span> <span class=o >=</span> <span class=nb >set</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=o >-</span> <span class=nb >set</span><span class=p >([</span><span class=s2 >"annotation"</span><span class=p >,</span> <span class=s2 >"gui_only"</span><span class=p >])</span>
         <span class=k >if</span> <span class=n >extra</span><span class=p >:</span>
             <span class=n >s</span> <span class=o >=</span> <span class=s2 >"s"</span> <span class=k >if</span> <span class=nb >len</span><span class=p >(</span><span class=n >extra</span><span class=p >)</span> <span class=o >&gt;</span> <span class=mi >1</span> <span class=k >else</span> <span class=s2 >""</span>
             <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=sa >f</span><span class=s2 >"FunctionGui got unexpected keyword argument</span><span class=si >{</span><span class=n >s</span><span class=si >}</span><span class=s2 >: </span><span class=si >{</span><span class=n >extra</span><span class=si >}</span><span class=s2 >"</span><span class=p >)</span>
@@ -97,7 +97,6 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=s2 >""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=n >bind</span><span class=p >)</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span><span class=p >:</span> <span class=nb >int</span> <span class=o >=</span> <span class=mi >0</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >PushButton</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
         <span class=k >if</span> <span class=n >call_button</span><span class=p >:</span>
@@ -119,15 +118,6 @@
 
         <span class=k >if</span> <span class=n >show</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
-
-    <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
-        <span class=sd >"""Return the number of times the function has been called."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span>
-
-    <span class=k >def</span> <span class=nf >reset_call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=sd >"""Reset the call count to 0."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >=</span> <span class=mi >0</span>
 
     <span class=k >def</span> <span class=nf >bind</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >kwargs</span><span class=p >:</span> <span class=nb >dict</span><span class=p >):</span>
         <span class=sd >"""Bind key/value pairs to the function signature.</span>
@@ -213,7 +203,6 @@
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
         <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >+=</span> <span class=mi >1</span>
         <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
             <span class=k >with</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >blocker</span><span class=p >():</span>
                 <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=n >value</span>

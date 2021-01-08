@@ -148,16 +148,6 @@
 
 
 <span class=nd >@backend_widget</span>
-<span class=k >class</span> <span class=nc >DateEdit</span><span class=p >(</span><span class=n >ValueWidget</span><span class=p >):</span>
-    <span class=sd >"""A widget for editing dates."""</span>
-
-
-<span class=nd >@backend_widget</span>
-<span class=k >class</span> <span class=nc >TimeEdit</span><span class=p >(</span><span class=n >ValueWidget</span><span class=p >):</span>
-    <span class=sd >"""A widget for editing times."""</span>
-
-
-<span class=nd >@backend_widget</span>
 <span class=k >class</span> <span class=nc >PushButton</span><span class=p >(</span><span class=n >ButtonWidget</span><span class=p >):</span>
     <span class=sd >"""A clickable command button."""</span>
 
@@ -205,19 +195,6 @@
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span>
         <span class=bp >self</span><span class=p >,</span> <span class=nb >min</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=mi >1</span><span class=p >,</span> <span class=nb >max</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=mi >100</span><span class=p >,</span> <span class=n >base</span><span class=p >:</span> <span class=nb >float</span> <span class=o >=</span> <span class=n >math</span><span class=o >.</span><span class=n >e</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span>
     <span class=p >):</span>
-        <span class=k >for</span> <span class=n >key</span> <span class=ow >in</span> <span class=p >(</span><span class=s2 >"maximum"</span><span class=p >,</span> <span class=s2 >"minimum"</span><span class=p >):</span>
-            <span class=k >if</span> <span class=n >key</span> <span class=ow >in</span> <span class=n >kwargs</span><span class=p >:</span>
-                <span class=kn >import</span> <span class=nn >warnings</span>
-
-                <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
-                    <span class=sa >f</span><span class=s2 >"The </span><span class=si >{</span><span class=n >key</span><span class=si >!r}</span><span class=s2 > keyword arguments has been changed to </span><span class=si >{</span><span class=n >key</span><span class=p >[:</span><span class=mi >3</span><span class=p >]</span><span class=si >!r}</span><span class=s2 >. "</span>
-                    <span class=s2 >"In the future this will raise an exception</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
-                    <span class=ne >FutureWarning</span><span class=p >,</span>
-                <span class=p >)</span>
-                <span class=k >if</span> <span class=n >key</span> <span class=o >==</span> <span class=s2 >"maximum"</span><span class=p >:</span>
-                    <span class=nb >max</span> <span class=o >=</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >key</span><span class=p >)</span>
-                <span class=k >else</span><span class=p >:</span>
-                    <span class=nb >min</span> <span class=o >=</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >key</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_base</span> <span class=o >=</span> <span class=n >base</span>
         <span class=n >app</span> <span class=o >=</span> <span class=n >use_app</span><span class=p >()</span>
         <span class=k >assert</span> <span class=n >app</span><span class=o >.</span><span class=n >native</span>
