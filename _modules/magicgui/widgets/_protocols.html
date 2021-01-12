@@ -176,7 +176,32 @@
 <div class=viewcode-block  id=SupportsChoices._mgui_set_choices ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_set_choices">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_set_choices</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choices</span><span class=p >:</span> <span class=n >Iterable</span><span class=p >[</span><span class=n >Tuple</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]])</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=sd >"""Set available choices."""</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div></div>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=SupportsChoices._mgui_get_current_choice ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_get_current_choice">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_current_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Return the text of the currently selected choice."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=SupportsChoices._mgui_get_choice ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_get_choice">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Any</span><span class=p >:</span>
+        <span class=sd >"""Get data for a single choice."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=SupportsChoices._mgui_set_choice ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_set_choice">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >,</span> <span class=n >data</span><span class=p >:</span> <span class=n >Any</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set data for choice_name, or add a new item if choice_name doesn't exist."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=SupportsChoices._mgui_del_choice ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_del_choice">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_del_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Delete the provided ``choice_name`` and associated data."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=SupportsChoices._mgui_get_count ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.SupportsChoices.html#magicgui.widgets._protocols.SupportsChoices._mgui_get_count">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Return number of choices."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span></div></div>
 
 
 <div class=viewcode-block  id=CategoricalWidgetProtocol ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.CategoricalWidgetProtocol.html#magicgui.widgets._protocols.CategoricalWidgetProtocol">[docs]</a><span class=nd >@runtime_checkable</span>

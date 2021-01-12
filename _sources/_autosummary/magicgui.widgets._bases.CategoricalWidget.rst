@@ -14,6 +14,12 @@
    
       
       
+      ~CategoricalWidget.del_choice
+      
+      
+      ~CategoricalWidget.get_choice
+      
+      
       ~CategoricalWidget.hide
       
       
@@ -21,6 +27,9 @@
       
       
       ~CategoricalWidget.reset_choices
+      
+      
+      ~CategoricalWidget.set_choice
       
       
       ~CategoricalWidget.show
@@ -39,6 +48,7 @@
    
       ~CategoricalWidget.annotation
       ~CategoricalWidget.choices
+      ~CategoricalWidget.current_choice
       ~CategoricalWidget.enabled
       ~CategoricalWidget.label
       ~CategoricalWidget.native

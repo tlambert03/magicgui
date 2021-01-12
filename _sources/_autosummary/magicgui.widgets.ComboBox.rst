@@ -14,6 +14,12 @@
    
       
       
+      ~ComboBox.del_choice
+      
+      
+      ~ComboBox.get_choice
+      
+      
       ~ComboBox.hide
       
       
@@ -21,6 +27,9 @@
       
       
       ~ComboBox.reset_choices
+      
+      
+      ~ComboBox.set_choice
       
       
       ~ComboBox.show
@@ -39,6 +48,7 @@
    
       ~ComboBox.annotation
       ~ComboBox.choices
+      ~ComboBox.current_choice
       ~ComboBox.enabled
       ~ComboBox.label
       ~ComboBox.native

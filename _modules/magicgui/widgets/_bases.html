@@ -737,6 +737,30 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >choices</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_default_choices</span>
 
     <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >current_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Return the text of the currently selected choice."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_current_choice</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=fm >__len__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Return the number of choices."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_count</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=nf >get_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >):</span>
+        <span class=sd >"""Get data for the provided ``choice_name``."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_choice</span><span class=p >(</span><span class=n >choice_name</span><span class=p >)</span>
+
+    <span class=k >def</span> <span class=nf >set_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >,</span> <span class=n >data</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >):</span>
+        <span class=sd >"""Set data for the provided ``choice_name``."""</span>
+        <span class=n >data</span> <span class=o >=</span> <span class=n >data</span> <span class=k >if</span> <span class=n >data</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span> <span class=k >else</span> <span class=n >choice_name</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_choice</span><span class=p >(</span><span class=n >choice_name</span><span class=p >,</span> <span class=n >data</span><span class=p >)</span>
+        <span class=k >if</span> <span class=n >choice_name</span> <span class=o >==</span> <span class=bp >self</span><span class=o >.</span><span class=n >current_choice</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >value</span><span class=p >)</span>
+
+    <span class=k >def</span> <span class=nf >del_choice</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >choice_name</span><span class=p >:</span> <span class=nb >str</span><span class=p >,</span> <span class=n >data</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >):</span>
+        <span class=sd >"""Delete the provided ``choice_name`` and associated data."""</span>
+        <span class=n >data</span> <span class=o >=</span> <span class=n >data</span> <span class=k >if</span> <span class=n >data</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span> <span class=k >else</span> <span class=n >choice_name</span>
+
+    <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >choices</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=sd >"""Available value choices for this widget."""</span>
         <span class=k >return</span> <span class=nb >tuple</span><span class=p >(</span><span class=n >i</span><span class=p >[</span><span class=mi >1</span><span class=p >]</span> <span class=k >for</span> <span class=n >i</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_choices</span><span class=p >())</span>
