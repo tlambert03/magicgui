@@ -14,6 +14,12 @@
    
       
       
+      ~ValueWidget.bind
+      
+      
+      ~ValueWidget.get_value
+      
+      
       ~ValueWidget.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~ValueWidget.shown
+      
+      
+      ~ValueWidget.unbind
       
    
    

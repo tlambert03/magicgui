@@ -14,6 +14,12 @@
    
       
       
+      ~DateTimeEdit.bind
+      
+      
+      ~DateTimeEdit.get_value
+      
+      
       ~DateTimeEdit.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~DateTimeEdit.shown
+      
+      
+      ~DateTimeEdit.unbind
       
    
    

@@ -14,6 +14,12 @@
    
       
       
+      ~Slider.bind
+      
+      
+      ~Slider.get_value
+      
+      
       ~Slider.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~Slider.shown
+      
+      
+      ~Slider.unbind
       
    
    

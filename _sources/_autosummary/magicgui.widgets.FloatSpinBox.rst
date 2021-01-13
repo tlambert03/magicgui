@@ -14,6 +14,12 @@
    
       
       
+      ~FloatSpinBox.bind
+      
+      
+      ~FloatSpinBox.get_value
+      
+      
       ~FloatSpinBox.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~FloatSpinBox.shown
+      
+      
+      ~FloatSpinBox.unbind
       
    
    

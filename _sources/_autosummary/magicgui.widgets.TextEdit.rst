@@ -14,6 +14,12 @@
    
       
       
+      ~TextEdit.bind
+      
+      
+      ~TextEdit.get_value
+      
+      
       ~TextEdit.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~TextEdit.shown
+      
+      
+      ~TextEdit.unbind
       
    
    

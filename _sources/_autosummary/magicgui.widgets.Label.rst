@@ -14,6 +14,12 @@
    
       
       
+      ~Label.bind
+      
+      
+      ~Label.get_value
+      
+      
       ~Label.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~Label.shown
+      
+      
+      ~Label.unbind
       
    
    
