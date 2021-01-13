@@ -14,10 +14,16 @@
    
       
       
+      ~ComboBox.bind
+      
+      
       ~ComboBox.del_choice
       
       
       ~ComboBox.get_choice
+      
+      
+      ~ComboBox.get_value
       
       
       ~ComboBox.hide
@@ -36,6 +42,9 @@
       
       
       ~ComboBox.shown
+      
+      
+      ~ComboBox.unbind
       
    
    

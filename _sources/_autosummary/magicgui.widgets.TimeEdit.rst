@@ -14,6 +14,12 @@
    
       
       
+      ~TimeEdit.bind
+      
+      
+      ~TimeEdit.get_value
+      
+      
       ~TimeEdit.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~TimeEdit.shown
+      
+      
+      ~TimeEdit.unbind
       
    
    

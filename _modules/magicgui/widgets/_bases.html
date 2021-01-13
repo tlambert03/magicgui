@@ -395,6 +395,9 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_min_width</span><span class=p >(</span><span class=n >value</span><span class=p >)</span></div>
 
 
+<span class=n >UNBOUND</span> <span class=o >=</span> <span class=nb >object</span><span class=p >()</span>
+
+
 <div class=viewcode-block  id=ValueWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.ValueWidget.html#magicgui.widgets._bases.ValueWidget">[docs]</a><span class=k >class</span> <span class=nc >ValueWidget</span><span class=p >(</span><span class=n >Widget</span><span class=p >):</span>
     <span class=sd >"""Widget with a value, Wraps ValueWidgetProtocol.</span>
 
@@ -402,15 +405,25 @@
 <span class=sd >    ----------</span>
 <span class=sd >    value : Any, optional</span>
 <span class=sd >        The starting value for the widget, by default ``None``</span>
+<span class=sd >    bind : Any, optional</span>
+<span class=sd >        A value or callback to bind this widget, then whenever `widget.value` is</span>
+<span class=sd >        accessed, the value provided here will be returned.  ``value`` can be a</span>
+<span class=sd >        callable, in which case ``value(self)`` will be returned (i.e. your callback</span>
+<span class=sd >        must accept a single parameter, which is this widget instance.).</span>
+
 <span class=sd >    """</span>
 
     <span class=n >_widget</span><span class=p >:</span> <span class=n >_protocols</span><span class=o >.</span><span class=n >ValueWidgetProtocol</span>
     <span class=n >changed</span><span class=p >:</span> <span class=n >EventEmitter</span>
 
-    <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+    <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span> <span class=n >bind</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=n >UNBOUND</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=n >bind</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_call_bound</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span>
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span><span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
         <span class=k >if</span> <span class=n >value</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=n >value</span>
+        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span> <span class=ow >is</span> <span class=ow >not</span> <span class=n >UNBOUND</span> <span class=ow >and</span> <span class=s2 >"visible"</span> <span class=ow >not</span> <span class=ow >in</span> <span class=n >kwargs</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
 
     <span class=k >def</span> <span class=nf >_post_init</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=n >_post_init</span><span class=p >()</span>
@@ -419,10 +432,31 @@
             <span class=k >lambda</span> <span class=o >*</span><span class=n >x</span><span class=p >:</span> <span class=bp >self</span><span class=o >.</span><span class=n >changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=n >x</span><span class=p >[</span><span class=mi >0</span><span class=p >]</span> <span class=k >if</span> <span class=n >x</span> <span class=k >else</span> <span class=kc >None</span><span class=p >)</span>
         <span class=p >)</span>
 
+    <span class=k >def</span> <span class=nf >get_value</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+        <span class=sd >"""Callable version of `self.value`.</span>
+
+<span class=sd >        The main API is to use `self.value`, however, this is here in order to provide</span>
+<span class=sd >        an escape hatch if trying to access the widget's value inside of a callback</span>
+<span class=sd >        bound to self._bound_value.</span>
+<span class=sd >        """</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_value</span><span class=p >()</span>
+
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >value</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=sd >"""Return current value of the widget.  This may be interpreted by backends."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_value</span><span class=p >()</span>
+        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span> <span class=ow >is</span> <span class=ow >not</span> <span class=n >UNBOUND</span><span class=p >:</span>
+            <span class=k >if</span> <span class=n >callable</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span><span class=p >)</span> <span class=ow >and</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_bound</span><span class=p >:</span>
+                <span class=k >try</span><span class=p >:</span>
+                    <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span>
+                <span class=k >except</span> <span class=ne >RecursionError</span> <span class=k >as</span> <span class=n >e</span><span class=p >:</span>
+                    <span class=k >raise</span> <span class=ne >RuntimeError</span><span class=p >(</span>
+                        <span class=s2 >"RecursionError in callback bound to "</span>
+                        <span class=sa >f</span><span class=s2 >"&lt;</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >widget_type</span><span class=si >!r}</span><span class=s2 > name=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >name</span><span class=si >!r}</span><span class=s2 >&gt;. If you need to "</span>
+                        <span class=s2 >"access `widget.value` in your bound callback, use "</span>
+                        <span class=s2 >"`widget.get_value()`"</span>
+                    <span class=p >)</span> <span class=kn >from</span> <span class=nn >e</span>
+            <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >get_value</span><span class=p >()</span>
 
     <span class=nd >@value</span><span class=o >.</span><span class=n >setter</span>
     <span class=k >def</span> <span class=nf >value</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
@@ -436,7 +470,39 @@
                 <span class=sa >f</span><span class=s2 >"annotation=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >annotation</span><span class=si >!r}</span><span class=s2 >, name=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >name</span><span class=si >!r}</span><span class=s2 >)"</span>
             <span class=p >)</span>
         <span class=k >else</span><span class=p >:</span>
-            <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;Uninitialized </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >widget_type</span><span class=si >}</span><span class=s2 >&gt;"</span></div>
+            <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;Uninitialized </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >widget_type</span><span class=si >}</span><span class=s2 >&gt;"</span>
+
+    <span class=k >def</span> <span class=nf >bind</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=n >Any</span><span class=p >,</span> <span class=n >call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Binds ``value`` to self.value.</span>
+
+<span class=sd >        If a value is bound to this widget, then whenever `widget.value` is accessed,</span>
+<span class=sd >        the value provided here will be returned.  ``value`` can be a callable, in which</span>
+<span class=sd >        case ``value(self)`` will be returned (i.e. your callback must accept a single</span>
+<span class=sd >        parameter, which is this widget instance.).</span>
+
+<span class=sd >        If you provide a callable and you *don't* want it to be called (but rather just</span>
+<span class=sd >        returned as a callable object, then use ``call=False`` when binding your value.</span>
+
+<span class=sd >        Note: if you need to access the "original" ``widget.value`` within your</span>
+<span class=sd >        callback, please use ``widget.get_value()`` instead of the ``widget.value``</span>
+<span class=sd >        property, in order to avoid a RuntimeError.</span>
+
+<span class=sd >        Parameters</span>
+<span class=sd >        ----------</span>
+<span class=sd >        value : Any</span>
+<span class=sd >            The value (or callback) to return when accessing this widget's value.</span>
+<span class=sd >        call : bool, optional</span>
+<span class=sd >            If ``value`` is a callable and ``call`` is ``True``, the callback will be</span>
+<span class=sd >            called as ``callback(self)`` when accessing ``self.value``.  If ``False``,</span>
+<span class=sd >            the callback will simply be returned as a callable object, by default,</span>
+<span class=sd >            ``True``.</span>
+<span class=sd >        """</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_call_bound</span> <span class=o >=</span> <span class=n >call</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span> <span class=o >=</span> <span class=n >value</span>
+
+    <span class=k >def</span> <span class=nf >unbind</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Unbinds any bound values. (see ``ValueWidget.bind``)."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_bound_value</span> <span class=o >=</span> <span class=n >UNBOUND</span></div>
 
 
 <div class=viewcode-block  id=ButtonWidget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._bases.ButtonWidget.html#magicgui.widgets._bases.ButtonWidget">[docs]</a><span class=k >class</span> <span class=nc >ButtonWidget</span><span class=p >(</span><span class=n >ValueWidget</span><span class=p >):</span>
@@ -710,7 +776,7 @@
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >value</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=sd >"""Return current value of the widget."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_value</span><span class=p >()</span>
+        <span class=k >return</span> <span class=n >ValueWidget</span><span class=o >.</span><span class=n >value</span><span class=o >.</span><span class=n >fget</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span>  <span class=c1 ># type: ignore</span>
 
     <span class=nd >@value</span><span class=o >.</span><span class=n >setter</span>
     <span class=k >def</span> <span class=nf >value</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
@@ -718,7 +784,7 @@
             <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span>
                 <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >value</span><span class=si >!r}</span><span class=s2 > is not a valid choice. must be in </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >choices</span><span class=si >}</span><span class=s2 >"</span>
             <span class=p >)</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_value</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
+        <span class=k >return</span> <span class=n >ValueWidget</span><span class=o >.</span><span class=n >value</span><span class=o >.</span><span class=n >fset</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >)</span>  <span class=c1 ># type: ignore</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >options</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >dict</span><span class=p >:</span>
@@ -929,7 +995,7 @@
             <span class=k >if</span> <span class=n >key</span> <span class=o >&lt;</span> <span class=mi >0</span><span class=p >:</span>
                 <span class=n >key</span> <span class=o >+=</span> <span class=nb >len</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span>
         <span class=n >item</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_index</span><span class=p >(</span><span class=n >key</span><span class=p >)</span>
-        <span class=k >if</span> <span class=ow >not</span> <span class=n >item</span><span class=p >:</span>
+        <span class=k >if</span> <span class=n >item</span> <span class=ow >is</span> <span class=kc >None</span><span class=p >:</span>
             <span class=k >raise</span> <span class=ne >IndexError</span><span class=p >(</span><span class=s2 >"Container index out of range"</span><span class=p >)</span>
         <span class=k >return</span> <span class=nb >getattr</span><span class=p >(</span><span class=n >item</span><span class=p >,</span> <span class=s2 >"_inner_widget"</span><span class=p >,</span> <span class=n >item</span><span class=p >)</span>
 
@@ -977,7 +1043,7 @@
             <span class=n >widget</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >connect</span><span class=p >(</span><span class=k >lambda</span> <span class=n >x</span><span class=p >:</span> <span class=bp >self</span><span class=o >.</span><span class=n >changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=p >))</span>
         <span class=n >_widget</span> <span class=o >=</span> <span class=n >widget</span>
 
-        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >labels</span><span class=p >:</span>
+        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >labels</span> <span class=ow >and</span> <span class=n >_widget</span><span class=o >.</span><span class=n >visible</span><span class=p >:</span>
             <span class=kn >from</span> <span class=nn >._concrete</span> <span class=kn >import</span> <span class=n >_LabeledWidget</span>
 
             <span class=c1 ># no labels for button widgets (push buttons, checkboxes, have their own)</span>
@@ -1035,8 +1101,8 @@
 <span class=sd >        state.</span>
 <span class=sd >        """</span>
         <span class=k >for</span> <span class=n >widget</span> <span class=ow >in</span> <span class=bp >self</span><span class=p >:</span>
-            <span class=k >if</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >widget</span><span class=p >,</span> <span class=n >CategoricalWidget</span><span class=p >):</span>
-                <span class=n >widget</span><span class=o >.</span><span class=n >reset_choices</span><span class=p >()</span>
+            <span class=k >if</span> <span class=nb >hasattr</span><span class=p >(</span><span class=n >widget</span><span class=p >,</span> <span class=s2 >"reset_choices"</span><span class=p >):</span>
+                <span class=n >widget</span><span class=o >.</span><span class=n >reset_choices</span><span class=p >()</span>  <span class=c1 ># type: ignore</span>
 
     <span class=k >def</span> <span class=nf >refresh_choices</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >event</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
         <span class=sd >"""Alias for reset_choices [DEPRECATED: use reset_choices]."""</span>

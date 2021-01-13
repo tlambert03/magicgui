@@ -266,10 +266,12 @@
 <span class=sd >    """</span>
     <span class=n >type_</span> <span class=o >=</span> <span class=n >_evaluate_forwardref</span><span class=p >(</span><span class=n >type_</span><span class=p >)</span>
 
-    <span class=k >if</span> <span class=ow >not</span> <span class=p >(</span><span class=n >return_callback</span> <span class=ow >or</span> <span class=n >options</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=s2 >"choices"</span><span class=p >)</span> <span class=ow >or</span> <span class=n >widget_type</span><span class=p >):</span>
+    <span class=k >if</span> <span class=ow >not</span> <span class=p >(</span>
+        <span class=n >return_callback</span> <span class=ow >or</span> <span class=n >options</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=s2 >"bind"</span><span class=p >)</span> <span class=ow >or</span> <span class=n >options</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=s2 >"choices"</span><span class=p >)</span> <span class=ow >or</span> <span class=n >widget_type</span>
+    <span class=p >):</span>
         <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span>
-            <span class=s2 >"At least one of `widget_type`, `choices`, or "</span>
-            <span class=s2 >"`return_callback` must be provided."</span>
+            <span class=s2 >"At least one of `widget_type`, `return_callback`, `bind` or `choices` "</span>
+            <span class=s2 >"must be provided."</span>
         <span class=p >)</span>
 
     <span class=k >if</span> <span class=n >return_callback</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
@@ -296,6 +298,11 @@
                 <span class=s1 >'"widget_type" must be either a string, Widget, or WidgetProtocol'</span>
             <span class=p >)</span>
         <span class=n >_TYPE_DEFS</span><span class=p >[</span><span class=n >type_</span><span class=p >]</span> <span class=o >=</span> <span class=p >(</span><span class=n >widget_type</span><span class=p >,</span> <span class=n >_options</span><span class=p >)</span>
+    <span class=k >elif</span> <span class=s2 >"bind"</span> <span class=ow >in</span> <span class=n >_options</span><span class=p >:</span>
+        <span class=c1 ># TODO: make a dedicated hidden widget?</span>
+        <span class=c1 ># if we're binding a value to this parameter, it doesn't matter what type</span>
+        <span class=c1 ># of ValueWidget is used... it usually won't be shown</span>
+        <span class=n >_TYPE_DEFS</span><span class=p >[</span><span class=n >type_</span><span class=p >]</span> <span class=o >=</span> <span class=p >(</span><span class=n >widgets</span><span class=o >.</span><span class=n >Label</span><span class=p >,</span> <span class=n >_options</span><span class=p >)</span>
 
     <span class=k >return</span> <span class=kc >None</span></div>
 

@@ -14,6 +14,12 @@
    
       
       
+      ~CheckBox.bind
+      
+      
+      ~CheckBox.get_value
+      
+      
       ~CheckBox.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~CheckBox.shown
+      
+      
+      ~CheckBox.unbind
       
    
    

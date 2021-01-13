@@ -14,6 +14,12 @@
    
       
       
+      ~SpinBox.bind
+      
+      
+      ~SpinBox.get_value
+      
+      
       ~SpinBox.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~SpinBox.shown
+      
+      
+      ~SpinBox.unbind
       
    
    

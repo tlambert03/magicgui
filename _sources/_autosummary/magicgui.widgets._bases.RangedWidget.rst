@@ -14,6 +14,12 @@
    
       
       
+      ~RangedWidget.bind
+      
+      
+      ~RangedWidget.get_value
+      
+      
       ~RangedWidget.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~RangedWidget.shown
+      
+      
+      ~RangedWidget.unbind
       
    
    

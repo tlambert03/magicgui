@@ -14,6 +14,12 @@
    
       
       
+      ~FloatSlider.bind
+      
+      
+      ~FloatSlider.get_value
+      
+      
       ~FloatSlider.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~FloatSlider.shown
+      
+      
+      ~FloatSlider.unbind
       
    
    

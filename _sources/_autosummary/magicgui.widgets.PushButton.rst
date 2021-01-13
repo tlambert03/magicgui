@@ -14,6 +14,12 @@
    
       
       
+      ~PushButton.bind
+      
+      
+      ~PushButton.get_value
+      
+      
       ~PushButton.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~PushButton.shown
+      
+      
+      ~PushButton.unbind
       
    
    

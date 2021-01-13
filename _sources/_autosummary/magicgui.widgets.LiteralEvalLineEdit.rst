@@ -14,6 +14,12 @@
    
       
       
+      ~LiteralEvalLineEdit.bind
+      
+      
+      ~LiteralEvalLineEdit.get_value
+      
+      
       ~LiteralEvalLineEdit.hide
       
       
@@ -24,6 +30,9 @@
       
       
       ~LiteralEvalLineEdit.shown
+      
+      
+      ~LiteralEvalLineEdit.unbind
       
    
    
