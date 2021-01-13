@@ -14,12 +14,6 @@
    
       
       
-      ~TransformedRangedWidget.bind
-      
-      
-      ~TransformedRangedWidget.get_value
-      
-      
       ~TransformedRangedWidget.hide
       
       
@@ -30,9 +24,6 @@
       
       
       ~TransformedRangedWidget.shown
-      
-      
-      ~TransformedRangedWidget.unbind
       
    
    

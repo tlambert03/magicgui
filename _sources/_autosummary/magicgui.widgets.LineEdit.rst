@@ -14,12 +14,6 @@
    
       
       
-      ~LineEdit.bind
-      
-      
-      ~LineEdit.get_value
-      
-      
       ~LineEdit.hide
       
       
@@ -30,9 +24,6 @@
       
       
       ~LineEdit.shown
-      
-      
-      ~LineEdit.unbind
       
    
    

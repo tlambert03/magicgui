@@ -14,12 +14,6 @@
    
       
       
-      ~LogSlider.bind
-      
-      
-      ~LogSlider.get_value
-      
-      
       ~LogSlider.hide
       
       
@@ -30,9 +24,6 @@
       
       
       ~LogSlider.shown
-      
-      
-      ~LogSlider.unbind
       
    
    

@@ -20,6 +20,9 @@
       ~FunctionGui.append
       
       
+      ~FunctionGui.bind
+      
+      
       ~FunctionGui.clear
       
       
@@ -75,6 +78,9 @@
       
       
       ~FunctionGui.to_signature
+      
+      
+      ~FunctionGui.unbind
       
    
    

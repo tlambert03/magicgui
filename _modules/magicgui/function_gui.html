@@ -7,7 +7,7 @@
 
 <span class=kn >import</span> <span class=nn >inspect</span>
 <span class=kn >import</span> <span class=nn >warnings</span>
-<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >TypeVar</span><span class=p >,</span> <span class=n >Union</span><span class=p >,</span> <span class=n >overload</span>
+<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Sequence</span><span class=p >,</span> <span class=n >TypeVar</span><span class=p >,</span> <span class=n >Union</span><span class=p >,</span> <span class=n >overload</span>
 
 <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
 <span class=kn >from</span> <span class=nn >magicgui.events</span> <span class=kn >import</span> <span class=n >EventEmitter</span>
@@ -47,6 +47,11 @@
 <span class=sd >        Will be passed to `magic_signature` by default ``None``</span>
 <span class=sd >    name : str, optional</span>
 <span class=sd >        A name to assign to the Container widget, by default `function.__name__`</span>
+<span class=sd >    bind : dict, optional</span>
+<span class=sd >        A mapping of parameter names to values. Values supplied here will be permanently</span>
+<span class=sd >        bound to the corresponding parameters: their widgets will be hidden from the GUI</span>
+<span class=sd >        and the value will be used for the corresponding parameter when calling the</span>
+<span class=sd >        function.</span>
 
 <span class=sd >    Raises</span>
 <span class=sd >    ------</span>
@@ -68,8 +73,10 @@
         <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
         <span class=n >param_options</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >dict</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=n >name</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
+        <span class=n >bind</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=o >**</span><span class=n >kwargs</span><span class=p >,</span>
     <span class=p >):</span>
+        <span class=n >bind</span> <span class=o >=</span> <span class=n >bind</span> <span class=ow >or</span> <span class=nb >dict</span><span class=p >()</span>
         <span class=c1 ># consume extra Widget keywords</span>
         <span class=n >extra</span> <span class=o >=</span> <span class=nb >set</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=o >-</span> <span class=p >{</span><span class=s2 >"annotation"</span><span class=p >,</span> <span class=s2 >"gui_only"</span><span class=p >}</span>
         <span class=k >if</span> <span class=n >extra</span><span class=p >:</span>
@@ -88,6 +95,8 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_param_options</span> <span class=o >=</span> <span class=n >param_options</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >called</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"called"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=s2 >""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=n >bind</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span><span class=p >:</span> <span class=nb >int</span> <span class=o >=</span> <span class=mi >0</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >PushButton</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
@@ -119,6 +128,36 @@
     <span class=k >def</span> <span class=nf >reset_call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=sd >"""Reset the call count to 0."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >=</span> <span class=mi >0</span>
+
+    <span class=k >def</span> <span class=nf >bind</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >kwargs</span><span class=p >:</span> <span class=nb >dict</span><span class=p >):</span>
+        <span class=sd >"""Bind key/value pairs to the function signature.</span>
+
+<span class=sd >        Values supplied here will be permanently bound to the corresponding parameters:</span>
+<span class=sd >        their widgets will be hidden from the GUI and the value will be used for the</span>
+<span class=sd >        corresponding parameter when the function is called.</span>
+
+<span class=sd >        Parameters</span>
+<span class=sd >        ----------</span>
+<span class=sd >        kwargs :  dict, optional</span>
+<span class=sd >            A mapping of parameter names to values to bind.</span>
+<span class=sd >        """</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=o >.</span><span class=n >update</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=k >for</span> <span class=n >name</span><span class=p >,</span> <span class=n >value</span> <span class=ow >in</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >items</span><span class=p >():</span>
+            <span class=nb >getattr</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >name</span><span class=p >)</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=nf >unbind</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >args</span><span class=p >:</span> <span class=n >Sequence</span><span class=p >):</span>
+        <span class=sd >"""Unbind keys from the function signature.</span>
+
+<span class=sd >        Parameters</span>
+<span class=sd >        ----------</span>
+<span class=sd >        args : sequence</span>
+<span class=sd >            A sequence of parameter names.  If any are currently bound to a value, the</span>
+<span class=sd >            binding will be cleared and the widget will be shown.</span>
+<span class=sd >        """</span>
+        <span class=k >for</span> <span class=n >name</span> <span class=ow >in</span> <span class=n >args</span><span class=p >:</span>
+            <span class=k >if</span> <span class=n >name</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >:</span>
+                <span class=k >del</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >[</span><span class=n >name</span><span class=p >]</span>
+                <span class=nb >getattr</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >name</span><span class=p >)</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
 
     <span class=k >def</span> <span class=fm >__getattr__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
         <span class=sd >"""Catch deprecated _name_changed attribute."""</span>
@@ -168,7 +207,9 @@
 <span class=sd >        gui()  # calls the original function with the current parameters</span>
 <span class=sd >        """</span>
         <span class=n >sig</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >to_signature</span><span class=p >()</span>
-        <span class=n >bound</span> <span class=o >=</span> <span class=n >sig</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=n >_kwargs</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=o >.</span><span class=n >copy</span><span class=p >()</span>
+        <span class=n >_kwargs</span><span class=o >.</span><span class=n >update</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=n >bound</span> <span class=o >=</span> <span class=n >sig</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >_kwargs</span><span class=p >)</span>
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
         <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
@@ -199,8 +240,8 @@
         <span class=sd >"""Set the result name of this FunctionGui widget."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=n >value</span>
 
-    <span class=k >def</span> <span class=nf >copy</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=s2 >"FunctionGui"</span><span class=p >:</span>
-        <span class=sd >"""Return a copy of this FunctionGui."""</span>
+    <span class=k >def</span> <span class=nf >copy</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >bind</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
+        <span class=sd >"""Return a copy of this FunctionGui, with optionally bound arguments."""</span>
         <span class=k >return</span> <span class=n >FunctionGui</span><span class=p >(</span>
             <span class=n >function</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >,</span>
             <span class=n >call_button</span><span class=o >=</span><span class=nb >bool</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >),</span>
@@ -210,9 +251,11 @@
             <span class=n >auto_call</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >_auto_call</span><span class=p >,</span>
             <span class=n >result_widget</span><span class=o >=</span><span class=nb >bool</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=p >),</span>
             <span class=n >app</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span>
+            <span class=n >bind</span><span class=o >=</span><span class=n >bind</span> <span class=k >if</span> <span class=n >bind</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span> <span class=k >else</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound</span><span class=p >,</span>
         <span class=p >)</span>
 
-    <span class=n >_bound_instances</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >int</span><span class=p >,</span> <span class=n >FunctionGui</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
+    <span class=c1 ># Cache function guis bound to specific instances</span>
+    <span class=n >_instance_guis</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >int</span><span class=p >,</span> <span class=n >FunctionGui</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
 
     <span class=k >def</span> <span class=fm >__get__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >obj</span><span class=p >,</span> <span class=n >objtype</span><span class=o >=</span><span class=kc >None</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >FunctionGui</span><span class=p >:</span>
         <span class=sd >"""Provide descriptor protocol.</span>
@@ -236,16 +279,11 @@
 <span class=sd >        {'self': &lt;__main__.MyClass object at 0x7fb610e455e0&gt;, 'x': 34}</span>
 <span class=sd >        """</span>
         <span class=k >if</span> <span class=n >obj</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=n >obj_id</span> <span class=o >=</span> <span class=nb >id</span><span class=p >(</span><span class=n >obj</span><span class=p >)</span>
-            <span class=k >if</span> <span class=n >obj_id</span> <span class=ow >not</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_instances</span><span class=p >:</span>
+            <span class=k >if</span> <span class=nb >id</span><span class=p >(</span><span class=n >obj</span><span class=p >)</span> <span class=ow >not</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >_instance_guis</span><span class=p >:</span>
                 <span class=n >method</span> <span class=o >=</span> <span class=nb >getattr</span><span class=p >(</span><span class=n >obj</span><span class=o >.</span><span class=vm >__class__</span><span class=p >,</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=p >)</span>
-                <span class=n >p0</span> <span class=o >=</span> <span class=nb >list</span><span class=p >(</span><span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >method</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
-                <span class=n >prior</span><span class=p >,</span> <span class=bp >self</span><span class=o >.</span><span class=n >_param_options</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_param_options</span><span class=p >,</span> <span class=p >{</span><span class=n >p0</span><span class=p >:</span> <span class=p >{</span><span class=s2 >"bind"</span><span class=p >:</span> <span class=n >obj</span><span class=p >}}</span>
-                <span class=k >try</span><span class=p >:</span>
-                    <span class=bp >self</span><span class=o >.</span><span class=n >_bound_instances</span><span class=p >[</span><span class=n >obj_id</span><span class=p >]</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >copy</span><span class=p >()</span>
-                <span class=k >finally</span><span class=p >:</span>
-                    <span class=bp >self</span><span class=o >.</span><span class=n >_param_options</span> <span class=o >=</span> <span class=n >prior</span>
-            <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_bound_instances</span><span class=p >[</span><span class=n >obj_id</span><span class=p >]</span>
+                <span class=n >params_names</span> <span class=o >=</span> <span class=nb >list</span><span class=p >(</span><span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >method</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span><span class=p >)</span>
+                <span class=bp >self</span><span class=o >.</span><span class=n >_instance_guis</span><span class=p >[</span><span class=nb >id</span><span class=p >(</span><span class=n >obj</span><span class=p >)]</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >copy</span><span class=p >(</span><span class=n >bind</span><span class=o >=</span><span class=p >{</span><span class=n >params_names</span><span class=p >[</span><span class=mi >0</span><span class=p >]:</span> <span class=n >obj</span><span class=p >})</span>
+            <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_instance_guis</span><span class=p >[</span><span class=nb >id</span><span class=p >(</span><span class=n >obj</span><span class=p >)]</span>
         <span class=k >return</span> <span class=bp >self</span>
 
     <span class=k >def</span> <span class=fm >__set__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >obj</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
@@ -291,6 +329,7 @@
     <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
     <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
     <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
+    <span class=n >bind</span><span class=p >:</span> <span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=n >Any</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
     <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
 <span class=p >):</span>
     <span class=sd >"""Return a :class:`FunctionGui` for ``function``.</span>
@@ -316,6 +355,11 @@
 <span class=sd >        by default False</span>
 <span class=sd >    app : magicgui.Application or str, optional</span>
 <span class=sd >        A backend to use, by default ``None`` (use the default backend.)</span>
+<span class=sd >    bind : dict, optional</span>
+<span class=sd >        A mapping of parameter names to values. Values supplied here will be permanently</span>
+<span class=sd >        bound to the corresponding parameters: their widgets will be hidden from the GUI</span>
+<span class=sd >        and the value will be used for the corresponding parameter when calling the</span>
+<span class=sd >        function.</span>
 
 <span class=sd >    **param_options : dict of dict</span>
 <span class=sd >        Any additional keyword arguments will be used as parameter-specific options.</span>
@@ -362,6 +406,7 @@
             <span class=n >auto_call</span><span class=o >=</span><span class=n >auto_call</span><span class=p >,</span>
             <span class=n >result_widget</span><span class=o >=</span><span class=n >result_widget</span><span class=p >,</span>
             <span class=n >app</span><span class=o >=</span><span class=n >app</span><span class=p >,</span>
+            <span class=n >bind</span><span class=o >=</span><span class=n >bind</span><span class=p >,</span>
         <span class=p >)</span>
         <span class=n >func_gui</span><span class=o >.</span><span class=n >__wrapped__</span> <span class=o >=</span> <span class=n >func</span>
         <span class=k >return</span> <span class=n >func_gui</span>

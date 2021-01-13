@@ -14,12 +14,6 @@
    
       
       
-      ~ButtonWidget.bind
-      
-      
-      ~ButtonWidget.get_value
-      
-      
       ~ButtonWidget.hide
       
       
@@ -30,9 +24,6 @@
       
       
       ~ButtonWidget.shown
-      
-      
-      ~ButtonWidget.unbind
       
    
    

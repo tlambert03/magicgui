@@ -14,16 +14,10 @@
    
       
       
-      ~CategoricalWidget.bind
-      
-      
       ~CategoricalWidget.del_choice
       
       
       ~CategoricalWidget.get_choice
-      
-      
-      ~CategoricalWidget.get_value
       
       
       ~CategoricalWidget.hide
@@ -42,9 +36,6 @@
       
       
       ~CategoricalWidget.shown
-      
-      
-      ~CategoricalWidget.unbind
       
    
    

@@ -14,12 +14,6 @@
    
       
       
-      ~RadioButton.bind
-      
-      
-      ~RadioButton.get_value
-      
-      
       ~RadioButton.hide
       
       
@@ -30,9 +24,6 @@
       
       
       ~RadioButton.shown
-      
-      
-      ~RadioButton.unbind
       
    
    
