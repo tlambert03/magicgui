@@ -54,6 +54,7 @@
       ~SpinBox.parent
       ~SpinBox.range
       ~SpinBox.step
+      ~SpinBox.tooltip
       ~SpinBox.value
       ~SpinBox.widget_type
       ~SpinBox.width

@@ -50,6 +50,7 @@
       ~TimeEdit.options
       ~TimeEdit.param_kind
       ~TimeEdit.parent
+      ~TimeEdit.tooltip
       ~TimeEdit.value
       ~TimeEdit.widget_type
       ~TimeEdit.width

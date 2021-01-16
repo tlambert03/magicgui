@@ -50,6 +50,7 @@
       ~LiteralEvalLineEdit.options
       ~LiteralEvalLineEdit.param_kind
       ~LiteralEvalLineEdit.parent
+      ~LiteralEvalLineEdit.tooltip
       ~LiteralEvalLineEdit.value
       ~LiteralEvalLineEdit.widget_type
       ~LiteralEvalLineEdit.width

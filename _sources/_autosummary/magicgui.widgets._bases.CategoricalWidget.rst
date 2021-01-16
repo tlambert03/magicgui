@@ -64,6 +64,7 @@
       ~CategoricalWidget.options
       ~CategoricalWidget.param_kind
       ~CategoricalWidget.parent
+      ~CategoricalWidget.tooltip
       ~CategoricalWidget.value
       ~CategoricalWidget.widget_type
       ~CategoricalWidget.width

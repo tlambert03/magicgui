@@ -51,6 +51,7 @@
       ~RadioButton.param_kind
       ~RadioButton.parent
       ~RadioButton.text
+      ~RadioButton.tooltip
       ~RadioButton.value
       ~RadioButton.widget_type
       ~RadioButton.width

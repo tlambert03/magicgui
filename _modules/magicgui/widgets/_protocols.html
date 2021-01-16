@@ -104,6 +104,16 @@
 <div class=viewcode-block  id=WidgetProtocol._mgui_set_min_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_min_width">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_set_min_width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=sd >"""Set the width of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_tooltip ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_tooltip">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_tooltip</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Get the tooltip for this widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_tooltip ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_tooltip">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_tooltip</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >str</span><span class=p >])</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set a tooltip for this widget."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div></div>
 
 

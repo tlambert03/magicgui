@@ -189,8 +189,10 @@
 <span class=sd >        By default, ``name`` will be used. Note: ``name`` refers the name of the</span>
 <span class=sd >        parameter, as might be used in a signature, whereas label is just the label</span>
 <span class=sd >        for that widget in the GUI.</span>
-<span class=sd >        Whether the widget should be considered "only for the gui", or if it should be</span>
-<span class=sd >        included in any widget container signatures, by default False</span>
+<span class=sd >    tooltip : str, optional</span>
+<span class=sd >        A tooltip to display when hovering over the widget.</span>
+<span class=sd >    visible : bool, optional</span>
+<span class=sd >        Whether the widget is visible, by default ``True``.</span>
 <span class=sd >    backend_kwargs : dict, optional</span>
 <span class=sd >        keyword argument to pass to the backend widget constructor.</span>
 <span class=sd >    """</span>
@@ -202,7 +204,8 @@
         <span class=n >widget_type</span><span class=p >:</span> <span class=n >Type</span><span class=p >[</span><span class=n >_protocols</span><span class=o >.</span><span class=n >WidgetProtocol</span><span class=p >],</span>
         <span class=n >name</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >""</span><span class=p >,</span>
         <span class=n >annotation</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-        <span class=n >label</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span>
+        <span class=n >label</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
+        <span class=n >tooltip</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
         <span class=n >gui_only</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
         <span class=n >backend_kwargs</span><span class=o >=</span><span class=nb >dict</span><span class=p >(),</span>
@@ -229,6 +232,7 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >name</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=n >name</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >param_kind</span> <span class=o >=</span> <span class=n >inspect</span><span class=o >.</span><span class=n >Parameter</span><span class=o >.</span><span class=n >POSITIONAL_OR_KEYWORD</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_label</span> <span class=o >=</span> <span class=n >label</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >tooltip</span> <span class=o >=</span> <span class=n >tooltip</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >annotation</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=n >annotation</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >gui_only</span> <span class=o >=</span> <span class=n >gui_only</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span>
@@ -241,9 +245,6 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_post_init</span><span class=p >()</span>
         <span class=k >if</span> <span class=ow >not</span> <span class=n >visible</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
-
-    <span class=k >def</span> <span class=nf >_emit_parent</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >event</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >parent</span><span class=p >)</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >annotation</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
@@ -294,28 +295,6 @@
         <span class=sd >"""Return native backend widget."""</span>
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_native_widget</span><span class=p >()</span>
 
-    <span class=k >def</span> <span class=nf >show</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >run</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
-        <span class=sd >"""Show the widget."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_show_widget</span><span class=p >()</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >True</span>
-        <span class=k >if</span> <span class=n >run</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=n >run</span><span class=p >()</span>
-        <span class=k >return</span> <span class=bp >self</span>  <span class=c1 ># useful for generating repr in sphinx</span>
-
-    <span class=nd >@contextmanager</span>
-    <span class=k >def</span> <span class=nf >shown</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
-        <span class=sd >"""Context manager to show the widget."""</span>
-        <span class=k >try</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
-            <span class=k >yield</span> <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=fm >__enter__</span><span class=p >()</span>
-        <span class=k >finally</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=fm >__exit__</span><span class=p >()</span>
-
-    <span class=k >def</span> <span class=nf >hide</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
-        <span class=sd >"""Hide widget."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_hide_widget</span><span class=p >()</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >False</span>
-
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >enabled</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >bool</span><span class=p >:</span>
         <span class=sd >"""Whether widget is enabled (editable)."""</span>
@@ -339,10 +318,6 @@
         <span class=sd >"""Return type of widget."""</span>
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=vm >__class__</span><span class=o >.</span><span class=vm >__name__</span>
 
-    <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
-        <span class=sd >"""Return representation of widget of instsance."""</span>
-        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >widget_type</span><span class=si >}</span><span class=s2 >(annotation=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >annotation</span><span class=si >!r}</span><span class=s2 >, name=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >name</span><span class=si >!r}</span><span class=s2 >)"</span>
-
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >label</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=sd >"""Return a label to use for this widget when present in Containers."""</span>
@@ -355,9 +330,62 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_label</span> <span class=o >=</span> <span class=n >value</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >label_changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=n >value</span><span class=p >)</span>
 
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >width</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Return the current width of the widget.</span>
+
+<span class=sd >        The naming of this method may change. The intention is to get the width of the</span>
+<span class=sd >        widget after it is shown, for the purpose of unifying widget width in a layout.</span>
+<span class=sd >        Backends may do what they need to accomplish this. For example, Qt can use</span>
+<span class=sd >        ``sizeHint().width()``, since ``width()`` will return something large if the</span>
+<span class=sd >        widget has not yet been painted on screen.</span>
+<span class=sd >        """</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_width</span><span class=p >()</span>
+
+    <span class=nd >@width</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the minimum allowable width of the widget."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_min_width</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
+
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >tooltip</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >str</span><span class=p >]:</span>
+        <span class=sd >"""Get the tooltip for this widget."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_tooltip</span><span class=p >()</span> <span class=ow >or</span> <span class=kc >None</span>
+
+    <span class=nd >@tooltip</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >tooltip</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >str</span><span class=p >])</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the tooltip for this widget."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_tooltip</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
+
+    <span class=k >def</span> <span class=nf >show</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >run</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
+        <span class=sd >"""Show the widget."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_show_widget</span><span class=p >()</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >True</span>
+        <span class=k >if</span> <span class=n >run</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=n >run</span><span class=p >()</span>
+        <span class=k >return</span> <span class=bp >self</span>  <span class=c1 ># useful for generating repr in sphinx</span>
+
+    <span class=nd >@contextmanager</span>
+    <span class=k >def</span> <span class=nf >shown</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+        <span class=sd >"""Context manager to show the widget."""</span>
+        <span class=k >try</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
+            <span class=k >yield</span> <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=fm >__enter__</span><span class=p >()</span>
+        <span class=k >finally</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=fm >__exit__</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=nf >hide</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+        <span class=sd >"""Hide widget."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_hide_widget</span><span class=p >()</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >False</span>
+
     <span class=k >def</span> <span class=nf >render</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=s2 >"np.ndarray"</span><span class=p >:</span>
         <span class=sd >"""Return an RGBA (MxNx4) numpy array bitmap of the rendered widget."""</span>
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_render</span><span class=p >()</span>
+
+    <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Return representation of widget of instsance."""</span>
+        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >widget_type</span><span class=si >}</span><span class=s2 >(annotation=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >annotation</span><span class=si >!r}</span><span class=s2 >, name=</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >name</span><span class=si >!r}</span><span class=s2 >)"</span>
 
     <span class=k >def</span> <span class=nf >_repr_png_</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
         <span class=sd >"""Return PNG representation of the widget for QtConsole."""</span>
@@ -377,22 +405,8 @@
             <span class=n >file_obj</span><span class=o >.</span><span class=n >seek</span><span class=p >(</span><span class=mi >0</span><span class=p >)</span>
             <span class=k >return</span> <span class=n >file_obj</span><span class=o >.</span><span class=n >read</span><span class=p >()</span>
 
-    <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >width</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
-        <span class=sd >"""Return the current width of the widget.</span>
-
-<span class=sd >        The naming of this method may change. The intention is to get the width of the</span>
-<span class=sd >        widget after it is shown, for the purpose of unifying widget width in a layout.</span>
-<span class=sd >        Backends may do what they need to accomplish this. For example, Qt can use</span>
-<span class=sd >        ``sizeHint().width()``, since ``width()`` will return something large if the</span>
-<span class=sd >        widget has not yet been painted on screen.</span>
-<span class=sd >        """</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_width</span><span class=p >()</span>
-
-    <span class=nd >@width</span><span class=o >.</span><span class=n >setter</span>
-    <span class=k >def</span> <span class=nf >width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=sd >"""Set the minimum allowable width of the widget."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_min_width</span><span class=p >(</span><span class=n >value</span><span class=p >)</span></div>
+    <span class=k >def</span> <span class=nf >_emit_parent</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >event</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span><span class=p >(</span><span class=n >value</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >parent</span><span class=p >)</span></div>
 
 
 <span class=n >UNBOUND</span> <span class=o >=</span> <span class=nb >object</span><span class=p >()</span>

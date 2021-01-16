@@ -50,6 +50,7 @@
       ~DateEdit.options
       ~DateEdit.param_kind
       ~DateEdit.parent
+      ~DateEdit.tooltip
       ~DateEdit.value
       ~DateEdit.widget_type
       ~DateEdit.width

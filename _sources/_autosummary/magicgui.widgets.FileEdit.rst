@@ -90,6 +90,7 @@
       ~FileEdit.param_kind
       ~FileEdit.parent
       ~FileEdit.return_annotation
+      ~FileEdit.tooltip
       ~FileEdit.value
       ~FileEdit.widget_type
       ~FileEdit.width

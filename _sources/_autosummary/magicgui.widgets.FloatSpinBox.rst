@@ -54,6 +54,7 @@
       ~FloatSpinBox.parent
       ~FloatSpinBox.range
       ~FloatSpinBox.step
+      ~FloatSpinBox.tooltip
       ~FloatSpinBox.value
       ~FloatSpinBox.widget_type
       ~FloatSpinBox.width

@@ -41,6 +41,7 @@
       ~Widget.options
       ~Widget.param_kind
       ~Widget.parent
+      ~Widget.tooltip
       ~Widget.widget_type
       ~Widget.width
    

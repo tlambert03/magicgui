@@ -54,6 +54,7 @@
       ~TransformedRangedWidget.parent
       ~TransformedRangedWidget.range
       ~TransformedRangedWidget.step
+      ~TransformedRangedWidget.tooltip
       ~TransformedRangedWidget.value
       ~TransformedRangedWidget.widget_type
       ~TransformedRangedWidget.width

@@ -89,6 +89,7 @@
       ~RangeEdit.param_kind
       ~RangeEdit.parent
       ~RangeEdit.return_annotation
+      ~RangeEdit.tooltip
       ~RangeEdit.value
       ~RangeEdit.widget_type
       ~RangeEdit.width

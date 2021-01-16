@@ -55,6 +55,7 @@
       ~FloatSlider.parent
       ~FloatSlider.range
       ~FloatSlider.step
+      ~FloatSlider.tooltip
       ~FloatSlider.value
       ~FloatSlider.widget_type
       ~FloatSlider.width

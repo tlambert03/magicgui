@@ -50,6 +50,7 @@
       ~ValueWidget.options
       ~ValueWidget.param_kind
       ~ValueWidget.parent
+      ~ValueWidget.tooltip
       ~ValueWidget.value
       ~ValueWidget.widget_type
       ~ValueWidget.width

@@ -64,6 +64,7 @@
       ~ComboBox.options
       ~ComboBox.param_kind
       ~ComboBox.parent
+      ~ComboBox.tooltip
       ~ComboBox.value
       ~ComboBox.widget_type
       ~ComboBox.width

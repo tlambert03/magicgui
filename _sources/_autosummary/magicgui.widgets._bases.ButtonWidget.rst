@@ -51,6 +51,7 @@
       ~ButtonWidget.param_kind
       ~ButtonWidget.parent
       ~ButtonWidget.text
+      ~ButtonWidget.tooltip
       ~ButtonWidget.value
       ~ButtonWidget.widget_type
       ~ButtonWidget.width

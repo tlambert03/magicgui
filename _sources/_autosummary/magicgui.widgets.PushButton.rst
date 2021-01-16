@@ -51,6 +51,7 @@
       ~PushButton.param_kind
       ~PushButton.parent
       ~PushButton.text
+      ~PushButton.tooltip
       ~PushButton.value
       ~PushButton.widget_type
       ~PushButton.width

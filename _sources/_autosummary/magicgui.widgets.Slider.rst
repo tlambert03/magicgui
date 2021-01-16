@@ -55,6 +55,7 @@
       ~Slider.parent
       ~Slider.range
       ~Slider.step
+      ~Slider.tooltip
       ~Slider.value
       ~Slider.widget_type
       ~Slider.width

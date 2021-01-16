@@ -50,6 +50,7 @@
       ~LineEdit.options
       ~LineEdit.param_kind
       ~LineEdit.parent
+      ~LineEdit.tooltip
       ~LineEdit.value
       ~LineEdit.widget_type
       ~LineEdit.width

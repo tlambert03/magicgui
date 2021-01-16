@@ -50,6 +50,7 @@
       ~TextEdit.options
       ~TextEdit.param_kind
       ~TextEdit.parent
+      ~TextEdit.tooltip
       ~TextEdit.value
       ~TextEdit.widget_type
       ~TextEdit.width

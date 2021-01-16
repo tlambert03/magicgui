@@ -54,6 +54,7 @@
       ~RangedWidget.parent
       ~RangedWidget.range
       ~RangedWidget.step
+      ~RangedWidget.tooltip
       ~RangedWidget.value
       ~RangedWidget.widget_type
       ~RangedWidget.width

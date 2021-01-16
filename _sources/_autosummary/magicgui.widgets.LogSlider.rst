@@ -55,6 +55,7 @@
       ~LogSlider.parent
       ~LogSlider.range
       ~LogSlider.step
+      ~LogSlider.tooltip
       ~LogSlider.value
       ~LogSlider.widget_type
       ~LogSlider.width

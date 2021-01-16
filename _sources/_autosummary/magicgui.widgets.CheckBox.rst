@@ -51,6 +51,7 @@
       ~CheckBox.param_kind
       ~CheckBox.parent
       ~CheckBox.text
+      ~CheckBox.tooltip
       ~CheckBox.value
       ~CheckBox.widget_type
       ~CheckBox.width

@@ -50,6 +50,7 @@
       ~Label.options
       ~Label.param_kind
       ~Label.parent
+      ~Label.tooltip
       ~Label.value
       ~Label.widget_type
       ~Label.width
