@@ -73,9 +73,6 @@
       
       ~FunctionGui.shown
       
-      
-      ~FunctionGui.to_signature
-      
    
    
 

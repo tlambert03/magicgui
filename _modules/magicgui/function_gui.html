@@ -14,7 +14,7 @@
 
 <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
 <span class=kn >from</span> <span class=nn >magicgui.events</span> <span class=kn >import</span> <span class=n >EventEmitter</span>
-<span class=kn >from</span> <span class=nn >magicgui.signature</span> <span class=kn >import</span> <span class=n >magic_signature</span>
+<span class=kn >from</span> <span class=nn >magicgui.signature</span> <span class=kn >import</span> <span class=n >MagicSignature</span><span class=p >,</span> <span class=n >magic_signature</span>
 <span class=kn >from</span> <span class=nn >magicgui.type_map</span> <span class=kn >import</span> <span class=n >_type2callback</span>
 <span class=kn >from</span> <span class=nn >magicgui.widgets</span> <span class=kn >import</span> <span class=n >Container</span><span class=p >,</span> <span class=n >LineEdit</span><span class=p >,</span> <span class=n >PushButton</span>
 <span class=kn >from</span> <span class=nn >magicgui.widgets._protocols</span> <span class=kn >import</span> <span class=n >ContainerProtocol</span>
@@ -27,16 +27,13 @@
     <span class=k >if</span> <span class=ow >not</span> <span class=n >docstring</span><span class=p >:</span>
         <span class=k >return</span>
     <span class=k >for</span> <span class=n >param</span> <span class=ow >in</span> <span class=n >parse</span><span class=p >(</span><span class=n >docstring</span><span class=p >)</span><span class=o >.</span><span class=n >params</span><span class=p >:</span>
-        <span class=c1 ># make the tooltip from the first sentence in the param doc description</span>
-        <span class=n >tooltip</span> <span class=o >=</span> <span class=n >param</span><span class=o >.</span><span class=n >description</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >"."</span><span class=p >,</span> <span class=n >maxsplit</span><span class=o >=</span><span class=mi >1</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
-        <span class=n >tooltip</span> <span class=o >=</span> <span class=n >re</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=sa >r</span><span class=s2 >",?\s?([bB]y )?[dD]efault"</span><span class=p >,</span> <span class=n >tooltip</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
         <span class=c1 ># this is to catch potentially bad arg_name parsing in docstring_parser</span>
         <span class=c1 ># if using napoleon style google docstringss</span>
         <span class=n >argname</span> <span class=o >=</span> <span class=n >param</span><span class=o >.</span><span class=n >arg_name</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >" "</span><span class=p >,</span> <span class=n >maxsplit</span><span class=o >=</span><span class=mi >1</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
         <span class=k >if</span> <span class=n >argname</span> <span class=ow >not</span> <span class=ow >in</span> <span class=n >param_options</span><span class=p >:</span>
             <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
         <span class=c1 ># use setdefault so as not to override an explicitly provided tooltip</span>
-        <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span><span class=o >.</span><span class=n >setdefault</span><span class=p >(</span><span class=s2 >"tooltip"</span><span class=p >,</span> <span class=n >tooltip</span><span class=p >)</span>
+        <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span><span class=o >.</span><span class=n >setdefault</span><span class=p >(</span><span class=s2 >"tooltip"</span><span class=p >,</span> <span class=n >param</span><span class=o >.</span><span class=n >description</span><span class=p >)</span>
 
 
 <div class=viewcode-block  id=FunctionGui ><a class=viewcode-back  href="../../_autosummary/magicgui.function_gui.FunctionGui.html#magicgui.function_gui.FunctionGui">[docs]</a><span class=k >class</span> <span class=nc >FunctionGui</span><span class=p >(</span><span class=n >Container</span><span class=p >):</span>
@@ -79,6 +76,7 @@
 <span class=sd >    """</span>
 
     <span class=n >_widget</span><span class=p >:</span> <span class=n >ContainerProtocol</span>
+    <span class=n >__signature__</span><span class=p >:</span> <span class=n >MagicSignature</span>
 
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span>
         <span class=bp >self</span><span class=p >,</span>
@@ -170,17 +168,6 @@
     <span class=c1 >#     """Delete a widget by integer or slice index."""</span>
     <span class=c1 >#     raise AttributeError("can't delete items from a FunctionGui")</span>
 
-    <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >__signature__</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
-        <span class=sd >"""Return an inspect.Signature subclass.</span>
-
-<span class=sd >        The sig represents the original wrapped function, but with defaults and types</span>
-<span class=sd >        from the widget (if different).</span>
-<span class=sd >        """</span>
-        <span class=c1 ># FIXME: if someone has manually deleted widgets from the container, it may go</span>
-        <span class=c1 ># out of sync with the function signature.  Should prevent that.</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >to_signature</span><span class=p >()</span>
-
     <span class=k >def</span> <span class=fm >__call__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >:</span> <span class=n >Any</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >:</span> <span class=n >Any</span><span class=p >):</span>
         <span class=sd >"""Call the original function with the current parameter values from the Gui.</span>
 
@@ -201,8 +188,25 @@
 
 <span class=sd >        gui()  # calls the original function with the current parameters</span>
 <span class=sd >        """</span>
-        <span class=n >sig</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >to_signature</span><span class=p >()</span>
-        <span class=n >bound</span> <span class=o >=</span> <span class=n >sig</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=n >sig</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span>
+        <span class=k >try</span><span class=p >:</span>
+            <span class=n >bound</span> <span class=o >=</span> <span class=n >sig</span><span class=o >.</span><span class=n >bind</span><span class=p >(</span><span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=k >except</span> <span class=ne >TypeError</span> <span class=k >as</span> <span class=n >e</span><span class=p >:</span>
+            <span class=k >if</span> <span class=s2 >"missing a required argument"</span> <span class=ow >in</span> <span class=nb >str</span><span class=p >(</span><span class=n >e</span><span class=p >):</span>
+                <span class=n >match</span> <span class=o >=</span> <span class=n >re</span><span class=o >.</span><span class=n >search</span><span class=p >(</span><span class=s2 >"argument: '(.+)'"</span><span class=p >,</span> <span class=nb >str</span><span class=p >(</span><span class=n >e</span><span class=p >))</span>
+                <span class=n >missing</span> <span class=o >=</span> <span class=n >match</span><span class=o >.</span><span class=n >groups</span><span class=p >()[</span><span class=mi >0</span><span class=p >]</span> <span class=k >if</span> <span class=n >match</span> <span class=k >else</span> <span class=s2 >"&lt;param&gt;"</span>
+                <span class=n >msg</span> <span class=o >=</span> <span class=p >(</span>
+                    <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >e</span><span class=si >}</span><span class=s2 > in call to '</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >'.</span><span class=se >\n</span><span class=s2 >"</span>
+                    <span class=s2 >"To avoid this error, you can bind a value or callback to the "</span>
+                    <span class=sa >f</span><span class=s2 >"parameter:</span><span class=se >\n\n</span><span class=s2 >    </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >missing</span><span class=si >}</span><span class=s2 >.bind(value)"</span>
+                    <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >Or use the 'bind' option in the magicgui decorator:</span><span class=se >\n\n</span><span class=s2 >"</span>
+                    <span class=sa >f</span><span class=s2 >"    @magicgui(</span><span class=si >{</span><span class=n >missing</span><span class=si >}</span><span class=s2 >=</span><span class=se >{{</span><span class=s2 >'bind': value</span><span class=se >}}</span><span class=s2 >)</span><span class=se >\n</span><span class=s2 >"</span>
+                    <span class=sa >f</span><span class=s2 >"    def </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >: ..."</span>
+                <span class=p >)</span>
+                <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=n >msg</span><span class=p >)</span> <span class=kn >from</span> <span class=bp >None</span>
+            <span class=k >else</span><span class=p >:</span>
+                <span class=k >raise</span>
+
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
         <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
@@ -221,7 +225,7 @@
     <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
         <span class=sd >"""Return string representation of instance."""</span>
         <span class=n >fname</span> <span class=o >=</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__module__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >"</span>
-        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;FunctionGui </span><span class=si >{</span><span class=n >fname</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >to_signature</span><span class=p >()</span><span class=si >}</span><span class=s2 >&gt;"</span>
+        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;FunctionGui </span><span class=si >{</span><span class=n >fname</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span><span class=si >}</span><span class=s2 >&gt;"</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >result_name</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>

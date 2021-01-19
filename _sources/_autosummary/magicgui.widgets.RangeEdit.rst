@@ -64,9 +64,6 @@
       
       ~RangeEdit.shown
       
-      
-      ~RangeEdit.to_signature
-      
    
    
 

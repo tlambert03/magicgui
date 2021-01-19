@@ -64,9 +64,6 @@
       
       ~FileEdit.shown
       
-      
-      ~FileEdit.to_signature
-      
    
    
 

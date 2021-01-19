@@ -64,9 +64,6 @@
       
       ~ContainerWidget.shown
       
-      
-      ~ContainerWidget.to_signature
-      
    
    
 

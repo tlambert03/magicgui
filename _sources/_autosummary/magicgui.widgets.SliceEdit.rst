@@ -64,9 +64,6 @@
       
       ~SliceEdit.shown
       
-      
-      ~SliceEdit.to_signature
-      
    
    
 
