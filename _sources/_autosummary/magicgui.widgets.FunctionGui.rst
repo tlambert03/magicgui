@@ -1,7 +1,7 @@
 ﻿FunctionGui
 ===========
 
-.. currentmodule:: magicgui.function_gui
+.. currentmodule:: magicgui.widgets
 
 .. autoclass:: FunctionGui
 
