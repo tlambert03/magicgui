@@ -45,7 +45,12 @@
    
       ~DateEdit.annotation
       ~DateEdit.enabled
+      ~DateEdit.height
       ~DateEdit.label
+      ~DateEdit.max_height
+      ~DateEdit.max_width
+      ~DateEdit.min_height
+      ~DateEdit.min_width
       ~DateEdit.native
       ~DateEdit.options
       ~DateEdit.param_kind

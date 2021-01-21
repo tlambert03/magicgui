@@ -45,7 +45,12 @@
    
       ~LiteralEvalLineEdit.annotation
       ~LiteralEvalLineEdit.enabled
+      ~LiteralEvalLineEdit.height
       ~LiteralEvalLineEdit.label
+      ~LiteralEvalLineEdit.max_height
+      ~LiteralEvalLineEdit.max_width
+      ~LiteralEvalLineEdit.min_height
+      ~LiteralEvalLineEdit.min_width
       ~LiteralEvalLineEdit.native
       ~LiteralEvalLineEdit.options
       ~LiteralEvalLineEdit.param_kind

@@ -45,9 +45,14 @@
    
       ~ProgressBar.annotation
       ~ProgressBar.enabled
+      ~ProgressBar.height
       ~ProgressBar.label
       ~ProgressBar.max
+      ~ProgressBar.max_height
+      ~ProgressBar.max_width
       ~ProgressBar.min
+      ~ProgressBar.min_height
+      ~ProgressBar.min_width
       ~ProgressBar.native
       ~ProgressBar.options
       ~ProgressBar.orientation

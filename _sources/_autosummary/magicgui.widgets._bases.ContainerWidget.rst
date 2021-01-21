@@ -75,12 +75,16 @@
    
       ~ContainerWidget.annotation
       ~ContainerWidget.enabled
+      ~ContainerWidget.height
       ~ContainerWidget.label
       ~ContainerWidget.labels
       ~ContainerWidget.layout
       ~ContainerWidget.margins
+      ~ContainerWidget.max_height
+      ~ContainerWidget.max_width
+      ~ContainerWidget.min_height
+      ~ContainerWidget.min_width
       ~ContainerWidget.native
-      ~ContainerWidget.native_layout
       ~ContainerWidget.options
       ~ContainerWidget.orientation
       ~ContainerWidget.param_kind

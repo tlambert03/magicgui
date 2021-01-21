@@ -45,7 +45,12 @@
    
       ~RadioButton.annotation
       ~RadioButton.enabled
+      ~RadioButton.height
       ~RadioButton.label
+      ~RadioButton.max_height
+      ~RadioButton.max_width
+      ~RadioButton.min_height
+      ~RadioButton.min_width
       ~RadioButton.native
       ~RadioButton.options
       ~RadioButton.param_kind

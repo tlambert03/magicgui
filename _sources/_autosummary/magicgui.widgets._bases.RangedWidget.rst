@@ -45,9 +45,14 @@
    
       ~RangedWidget.annotation
       ~RangedWidget.enabled
+      ~RangedWidget.height
       ~RangedWidget.label
       ~RangedWidget.max
+      ~RangedWidget.max_height
+      ~RangedWidget.max_width
       ~RangedWidget.min
+      ~RangedWidget.min_height
+      ~RangedWidget.min_width
       ~RangedWidget.native
       ~RangedWidget.options
       ~RangedWidget.param_kind

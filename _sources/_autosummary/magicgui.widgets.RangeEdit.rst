@@ -75,12 +75,16 @@
    
       ~RangeEdit.annotation
       ~RangeEdit.enabled
+      ~RangeEdit.height
       ~RangeEdit.label
       ~RangeEdit.labels
       ~RangeEdit.layout
       ~RangeEdit.margins
+      ~RangeEdit.max_height
+      ~RangeEdit.max_width
+      ~RangeEdit.min_height
+      ~RangeEdit.min_width
       ~RangeEdit.native
-      ~RangeEdit.native_layout
       ~RangeEdit.options
       ~RangeEdit.orientation
       ~RangeEdit.param_kind

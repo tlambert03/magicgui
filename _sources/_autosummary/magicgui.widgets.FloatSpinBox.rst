@@ -45,9 +45,14 @@
    
       ~FloatSpinBox.annotation
       ~FloatSpinBox.enabled
+      ~FloatSpinBox.height
       ~FloatSpinBox.label
       ~FloatSpinBox.max
+      ~FloatSpinBox.max_height
+      ~FloatSpinBox.max_width
       ~FloatSpinBox.min
+      ~FloatSpinBox.min_height
+      ~FloatSpinBox.min_width
       ~FloatSpinBox.native
       ~FloatSpinBox.options
       ~FloatSpinBox.param_kind

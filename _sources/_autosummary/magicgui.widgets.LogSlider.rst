@@ -46,9 +46,14 @@
       ~LogSlider.annotation
       ~LogSlider.base
       ~LogSlider.enabled
+      ~LogSlider.height
       ~LogSlider.label
       ~LogSlider.max
+      ~LogSlider.max_height
+      ~LogSlider.max_width
       ~LogSlider.min
+      ~LogSlider.min_height
+      ~LogSlider.min_width
       ~LogSlider.native
       ~LogSlider.options
       ~LogSlider.param_kind

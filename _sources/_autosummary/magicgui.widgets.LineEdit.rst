@@ -45,7 +45,12 @@
    
       ~LineEdit.annotation
       ~LineEdit.enabled
+      ~LineEdit.height
       ~LineEdit.label
+      ~LineEdit.max_height
+      ~LineEdit.max_width
+      ~LineEdit.min_height
+      ~LineEdit.min_width
       ~LineEdit.native
       ~LineEdit.options
       ~LineEdit.param_kind

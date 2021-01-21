@@ -45,7 +45,12 @@
    
       ~PushButton.annotation
       ~PushButton.enabled
+      ~PushButton.height
       ~PushButton.label
+      ~PushButton.max_height
+      ~PushButton.max_width
+      ~PushButton.min_height
+      ~PushButton.min_width
       ~PushButton.native
       ~PushButton.options
       ~PushButton.param_kind

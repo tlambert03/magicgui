@@ -45,9 +45,14 @@
    
       ~SliderWidget.annotation
       ~SliderWidget.enabled
+      ~SliderWidget.height
       ~SliderWidget.label
       ~SliderWidget.max
+      ~SliderWidget.max_height
+      ~SliderWidget.max_width
       ~SliderWidget.min
+      ~SliderWidget.min_height
+      ~SliderWidget.min_width
       ~SliderWidget.native
       ~SliderWidget.options
       ~SliderWidget.orientation

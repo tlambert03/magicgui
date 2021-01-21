@@ -100,19 +100,76 @@
 
 <div class=viewcode-block  id=WidgetProtocol._mgui_get_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_width">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_get_width</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
-        <span class=sd >"""Return the current width of the widget.</span>
+        <span class=sd >"""Get the width of the widget.</span>
 
-<span class=sd >        The naming of this method may change. The intention is to get the width of the</span>
-<span class=sd >        widget after it is shown, for the purpose of unifying widget width in a layout.</span>
-<span class=sd >        Backends may do what they need to accomplish this. For example, Qt can use</span>
-<span class=sd >        ``sizeHint().width()``, since ``width()`` will return something large if the</span>
-<span class=sd >        widget has not yet been painted on screen.</span>
+<span class=sd >        The intention is to get the width of the widget after it is shown, for the</span>
+<span class=sd >        purpose of unifying widget width in a layout. Backends may do what they need to</span>
+<span class=sd >        accomplish this. For example, Qt can use ``sizeHint().width()``, since</span>
+<span class=sd >        ``width()`` may return something large if the widget has not yet been painted</span>
+<span class=sd >        on screen.</span>
 <span class=sd >        """</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_width">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the width of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_min_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_min_width">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_min_width</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Get the minimum width of the widget."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
 <div class=viewcode-block  id=WidgetProtocol._mgui_set_min_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_min_width">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_set_min_width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=sd >"""Set the width of the widget."""</span>
+        <span class=sd >"""Set the minimum width of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_max_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_max_width">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_max_width</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Get the maximum width of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_max_width ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_max_width">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_max_width</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the maximum width of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_height</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Get the height of the widget.</span>
+
+<span class=sd >        The intention is to get the height of the widget after it is shown, for the</span>
+<span class=sd >        purpose of unifying widget height in a layout. Backends may do what they need to</span>
+<span class=sd >        accomplish this. For example, Qt can use ``sizeHint().height()``, since</span>
+<span class=sd >        ``height()`` may return something large if the widget has not yet been painted</span>
+<span class=sd >        on screen.</span>
+<span class=sd >        """</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_height</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the height of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_min_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_min_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_min_height</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Get the minimum height of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_min_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_min_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_min_height</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the minimum height of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_max_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_max_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_max_height</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
+        <span class=sd >"""Get the maximum height of the widget."""</span>
+        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
+
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_max_height ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_max_height">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_max_height</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=sd >"""Set the maximum height of the widget."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
 <div class=viewcode-block  id=WidgetProtocol._mgui_get_tooltip ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_tooltip">[docs]</a>    <span class=nd >@abstractmethod</span>
@@ -360,37 +417,12 @@
 <div class=viewcode-block  id=ContainerProtocol ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol">[docs]</a><span class=k >class</span> <span class=nc >ContainerProtocol</span><span class=p >(</span><span class=n >WidgetProtocol</span><span class=p >,</span> <span class=n >SupportsOrientation</span><span class=p >,</span> <span class=n >Protocol</span><span class=p >):</span>
     <span class=sd >"""Widget that can contain other widgets."""</span>
 
-<div class=viewcode-block  id=ContainerProtocol._mgui_add_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_add_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_add_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >widget</span><span class=p >:</span> <span class=s2 >"Widget"</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
 <div class=viewcode-block  id=ContainerProtocol._mgui_insert_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_insert_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_insert_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >position</span><span class=p >:</span> <span class=nb >int</span><span class=p >,</span> <span class=n >widget</span><span class=p >:</span> <span class=s2 >"Widget"</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
 <div class=viewcode-block  id=ContainerProtocol._mgui_remove_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_remove_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
     <span class=k >def</span> <span class=nf >_mgui_remove_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >widget</span><span class=p >:</span> <span class=s2 >"Widget"</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
-<div class=viewcode-block  id=ContainerProtocol._mgui_remove_index ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_remove_index">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_remove_index</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >position</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
-<div class=viewcode-block  id=ContainerProtocol._mgui_count ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_count">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
-<div class=viewcode-block  id=ContainerProtocol._mgui_index ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_index">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_index</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >widget</span><span class=p >:</span> <span class=s2 >"Widget"</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
-<div class=viewcode-block  id=ContainerProtocol._mgui_get_index ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_get_index">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_get_index</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >index</span><span class=p >:</span> <span class=nb >int</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Optional</span><span class=p >[</span><span class=n >Widget</span><span class=p >]:</span>
-        <span class=sd >"""(return None instead of index error)."""</span>
-        <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
-
-<div class=viewcode-block  id=ContainerProtocol._mgui_get_native_layout ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_get_native_layout">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_get_native_layout</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Any</span><span class=p >:</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
 <div class=viewcode-block  id=ContainerProtocol._mgui_get_margins ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.ContainerProtocol.html#magicgui.widgets._protocols.ContainerProtocol._mgui_get_margins">[docs]</a>    <span class=nd >@abstractmethod</span>

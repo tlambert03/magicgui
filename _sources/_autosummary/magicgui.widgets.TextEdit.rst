@@ -45,7 +45,12 @@
    
       ~TextEdit.annotation
       ~TextEdit.enabled
+      ~TextEdit.height
       ~TextEdit.label
+      ~TextEdit.max_height
+      ~TextEdit.max_width
+      ~TextEdit.min_height
+      ~TextEdit.min_width
       ~TextEdit.native
       ~TextEdit.options
       ~TextEdit.param_kind

@@ -45,7 +45,12 @@
    
       ~CheckBox.annotation
       ~CheckBox.enabled
+      ~CheckBox.height
       ~CheckBox.label
+      ~CheckBox.max_height
+      ~CheckBox.max_width
+      ~CheckBox.min_height
+      ~CheckBox.min_width
       ~CheckBox.native
       ~CheckBox.options
       ~CheckBox.param_kind

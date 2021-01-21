@@ -36,7 +36,12 @@
    
       ~Widget.annotation
       ~Widget.enabled
+      ~Widget.height
       ~Widget.label
+      ~Widget.max_height
+      ~Widget.max_width
+      ~Widget.min_height
+      ~Widget.min_width
       ~Widget.native
       ~Widget.options
       ~Widget.param_kind

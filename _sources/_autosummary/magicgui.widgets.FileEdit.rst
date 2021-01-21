@@ -75,13 +75,17 @@
    
       ~FileEdit.annotation
       ~FileEdit.enabled
+      ~FileEdit.height
       ~FileEdit.label
       ~FileEdit.labels
       ~FileEdit.layout
       ~FileEdit.margins
+      ~FileEdit.max_height
+      ~FileEdit.max_width
+      ~FileEdit.min_height
+      ~FileEdit.min_width
       ~FileEdit.mode
       ~FileEdit.native
-      ~FileEdit.native_layout
       ~FileEdit.options
       ~FileEdit.orientation
       ~FileEdit.param_kind

@@ -75,12 +75,16 @@
    
       ~Container.annotation
       ~Container.enabled
+      ~Container.height
       ~Container.label
       ~Container.labels
       ~Container.layout
       ~Container.margins
+      ~Container.max_height
+      ~Container.max_width
+      ~Container.min_height
+      ~Container.min_width
       ~Container.native
-      ~Container.native_layout
       ~Container.options
       ~Container.orientation
       ~Container.param_kind

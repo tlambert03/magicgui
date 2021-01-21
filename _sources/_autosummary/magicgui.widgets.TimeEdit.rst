@@ -45,7 +45,12 @@
    
       ~TimeEdit.annotation
       ~TimeEdit.enabled
+      ~TimeEdit.height
       ~TimeEdit.label
+      ~TimeEdit.max_height
+      ~TimeEdit.max_width
+      ~TimeEdit.min_height
+      ~TimeEdit.min_width
       ~TimeEdit.native
       ~TimeEdit.options
       ~TimeEdit.param_kind

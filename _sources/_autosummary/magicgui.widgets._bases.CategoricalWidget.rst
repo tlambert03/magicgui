@@ -59,7 +59,12 @@
       ~CategoricalWidget.choices
       ~CategoricalWidget.current_choice
       ~CategoricalWidget.enabled
+      ~CategoricalWidget.height
       ~CategoricalWidget.label
+      ~CategoricalWidget.max_height
+      ~CategoricalWidget.max_width
+      ~CategoricalWidget.min_height
+      ~CategoricalWidget.min_width
       ~CategoricalWidget.native
       ~CategoricalWidget.options
       ~CategoricalWidget.param_kind

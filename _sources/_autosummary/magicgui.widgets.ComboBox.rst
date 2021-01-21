@@ -59,7 +59,12 @@
       ~ComboBox.choices
       ~ComboBox.current_choice
       ~ComboBox.enabled
+      ~ComboBox.height
       ~ComboBox.label
+      ~ComboBox.max_height
+      ~ComboBox.max_width
+      ~ComboBox.min_height
+      ~ComboBox.min_width
       ~ComboBox.native
       ~ComboBox.options
       ~ComboBox.param_kind
