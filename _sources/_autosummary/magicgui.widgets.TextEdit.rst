@@ -55,6 +55,7 @@
       ~TextEdit.options
       ~TextEdit.param_kind
       ~TextEdit.parent
+      ~TextEdit.read_only
       ~TextEdit.tooltip
       ~TextEdit.value
       ~TextEdit.widget_type
