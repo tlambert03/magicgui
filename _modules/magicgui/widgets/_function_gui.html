@@ -8,7 +8,9 @@
 <span class=kn >import</span> <span class=nn >inspect</span>
 <span class=kn >import</span> <span class=nn >re</span>
 <span class=kn >import</span> <span class=nn >warnings</span>
-<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Union</span>
+<span class=kn >from</span> <span class=nn >contextlib</span> <span class=kn >import</span> <span class=n >contextmanager</span>
+<span class=kn >from</span> <span class=nn >types</span> <span class=kn >import</span> <span class=n >FunctionType</span>
+<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >Generic</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >TypeVar</span><span class=p >,</span> <span class=n >Union</span>
 
 <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
 <span class=kn >from</span> <span class=nn >magicgui.events</span> <span class=kn >import</span> <span class=n >EventEmitter</span>
@@ -28,18 +30,32 @@
 
     <span class=k >if</span> <span class=ow >not</span> <span class=n >docstring</span><span class=p >:</span>
         <span class=k >return</span>
-    <span class=k >for</span> <span class=n >param</span> <span class=ow >in</span> <span class=n >parse</span><span class=p >(</span><span class=n >docstring</span><span class=p >)</span><span class=o >.</span><span class=n >params</span><span class=p >:</span>
+
+    <span class=n >doc_params</span> <span class=o >=</span> <span class=p >{</span><span class=n >p</span><span class=o >.</span><span class=n >arg_name</span><span class=p >:</span> <span class=n >p</span><span class=o >.</span><span class=n >description</span> <span class=k >for</span> <span class=n >p</span> <span class=ow >in</span> <span class=n >parse</span><span class=p >(</span><span class=n >docstring</span><span class=p >)</span><span class=o >.</span><span class=n >params</span><span class=p >}</span>
+
+    <span class=c1 ># deal with the (numpydocs) case when there are multiple parameters separated</span>
+    <span class=c1 ># by a comma</span>
+    <span class=k >for</span> <span class=n >k</span><span class=p >,</span> <span class=n >v</span> <span class=ow >in</span> <span class=nb >list</span><span class=p >(</span><span class=n >doc_params</span><span class=o >.</span><span class=n >items</span><span class=p >()):</span>
+        <span class=k >if</span> <span class=s2 >","</span> <span class=ow >in</span> <span class=n >k</span><span class=p >:</span>
+            <span class=k >for</span> <span class=n >split_key</span> <span class=ow >in</span> <span class=n >k</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >","</span><span class=p >):</span>
+                <span class=n >doc_params</span><span class=p >[</span><span class=n >split_key</span><span class=o >.</span><span class=n >strip</span><span class=p >()]</span> <span class=o >=</span> <span class=n >v</span>
+            <span class=k >del</span> <span class=n >doc_params</span><span class=p >[</span><span class=n >k</span><span class=p >]</span>
+
+    <span class=k >for</span> <span class=n >name</span><span class=p >,</span> <span class=n >description</span> <span class=ow >in</span> <span class=n >doc_params</span><span class=o >.</span><span class=n >items</span><span class=p >():</span>
         <span class=c1 ># this is to catch potentially bad arg_name parsing in docstring_parser</span>
         <span class=c1 ># if using napoleon style google docstringss</span>
-        <span class=n >argname</span> <span class=o >=</span> <span class=n >param</span><span class=o >.</span><span class=n >arg_name</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >" "</span><span class=p >,</span> <span class=n >maxsplit</span><span class=o >=</span><span class=mi >1</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
+        <span class=n >argname</span> <span class=o >=</span> <span class=n >name</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >" "</span><span class=p >,</span> <span class=n >maxsplit</span><span class=o >=</span><span class=mi >1</span><span class=p >)[</span><span class=mi >0</span><span class=p >]</span>
         <span class=k >if</span> <span class=n >argname</span> <span class=ow >not</span> <span class=ow >in</span> <span class=n >param_options</span><span class=p >:</span>
             <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span> <span class=o >=</span> <span class=p >{}</span>
-        <span class=n >description</span> <span class=o >=</span> <span class=n >param</span><span class=o >.</span><span class=n >description</span><span class=o >.</span><span class=n >replace</span><span class=p >(</span><span class=s2 >"`"</span><span class=p >,</span> <span class=s2 >""</span><span class=p >)</span>
+        <span class=n >desc</span> <span class=o >=</span> <span class=n >description</span><span class=o >.</span><span class=n >replace</span><span class=p >(</span><span class=s2 >"`"</span><span class=p >,</span> <span class=s2 >""</span><span class=p >)</span> <span class=k >if</span> <span class=n >description</span> <span class=k >else</span> <span class=s2 >""</span>
         <span class=c1 ># use setdefault so as not to override an explicitly provided tooltip</span>
-        <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span><span class=o >.</span><span class=n >setdefault</span><span class=p >(</span><span class=s2 >"tooltip"</span><span class=p >,</span> <span class=n >description</span><span class=p >)</span>
+        <span class=n >param_options</span><span class=p >[</span><span class=n >argname</span><span class=p >]</span><span class=o >.</span><span class=n >setdefault</span><span class=p >(</span><span class=s2 >"tooltip"</span><span class=p >,</span> <span class=n >desc</span><span class=p >)</span>
 
 
-<div class=viewcode-block  id=FunctionGui ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets.FunctionGui.html#magicgui.widgets.FunctionGui">[docs]</a><span class=k >class</span> <span class=nc >FunctionGui</span><span class=p >(</span><span class=n >Container</span><span class=p >):</span>
+<span class=n >_R</span> <span class=o >=</span> <span class=n >TypeVar</span><span class=p >(</span><span class=s2 >"_R"</span><span class=p >)</span>
+
+
+<div class=viewcode-block  id=FunctionGui ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets.FunctionGui.html#magicgui.widgets.FunctionGui">[docs]</a><span class=k >class</span> <span class=nc >FunctionGui</span><span class=p >(</span><span class=n >Container</span><span class=p >,</span> <span class=n >Generic</span><span class=p >[</span><span class=n >_R</span><span class=p >]):</span>
     <span class=sd >"""Wrapper for a container of widgets representing a callable object.</span>
 
 <span class=sd >    Parameters</span>
@@ -83,7 +99,7 @@
 
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span>
         <span class=bp >self</span><span class=p >,</span>
-        <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >,</span>
+        <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >],</span>
         <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
         <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
         <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
@@ -96,6 +112,9 @@
         <span class=n >name</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=o >**</span><span class=n >kwargs</span><span class=p >,</span>
     <span class=p >):</span>
+        <span class=k >if</span> <span class=ow >not</span> <span class=n >callable</span><span class=p >(</span><span class=n >function</span><span class=p >):</span>
+            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=s2 >"'function' argument to FunctionGui must be callable."</span><span class=p >)</span>
+
         <span class=c1 ># consume extra Widget keywords</span>
         <span class=n >extra</span> <span class=o >=</span> <span class=nb >set</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=o >-</span> <span class=p >{</span><span class=s2 >"annotation"</span><span class=p >,</span> <span class=s2 >"gui_only"</span><span class=p >}</span>
         <span class=k >if</span> <span class=n >extra</span><span class=p >:</span>
@@ -111,13 +130,24 @@
             <span class=n >_inject_tooltips_from_docstrings</span><span class=p >(</span><span class=n >function</span><span class=o >.</span><span class=vm >__doc__</span><span class=p >,</span> <span class=n >param_options</span><span class=p >)</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_function</span> <span class=o >=</span> <span class=n >function</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >__wrapped__</span> <span class=o >=</span> <span class=n >function</span>
+        <span class=c1 ># it's conceivable that function is not actually an instance of FunctionType</span>
+        <span class=c1 ># we can still support any generic callable, but we need to be careful not to</span>
+        <span class=c1 ># access attributes (like `__name__` that only function objects have).</span>
+        <span class=c1 ># Mypy doesn't seem catch this at this point:</span>
+        <span class=c1 ># https://github.com/python/mypy/issues/9934</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span> <span class=o >=</span> <span class=p >(</span>
+            <span class=nb >getattr</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=s2 >"__name__"</span><span class=p >,</span> <span class=kc >None</span><span class=p >)</span>
+            <span class=ow >or</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >function</span><span class=o >.</span><span class=vm >__module__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >function</span><span class=o >.</span><span class=vm >__class__</span><span class=si >}</span><span class=s2 >"</span>
+        <span class=p >)</span>
+
         <span class=n >sig</span> <span class=o >=</span> <span class=n >magic_signature</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=n >gui_options</span><span class=o >=</span><span class=n >param_options</span><span class=p >)</span>
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span>
             <span class=n >layout</span><span class=o >=</span><span class=n >layout</span><span class=p >,</span>
             <span class=n >labels</span><span class=o >=</span><span class=n >labels</span><span class=p >,</span>
             <span class=n >widgets</span><span class=o >=</span><span class=nb >list</span><span class=p >(</span><span class=n >sig</span><span class=o >.</span><span class=n >widgets</span><span class=p >(</span><span class=n >app</span><span class=p >)</span><span class=o >.</span><span class=n >values</span><span class=p >()),</span>
             <span class=n >return_annotation</span><span class=o >=</span><span class=n >sig</span><span class=o >.</span><span class=n >return_annotation</span><span class=p >,</span>
-            <span class=n >name</span><span class=o >=</span><span class=n >name</span> <span class=ow >or</span> <span class=n >function</span><span class=o >.</span><span class=vm >__name__</span><span class=p >,</span>
+            <span class=n >name</span><span class=o >=</span><span class=n >name</span> <span class=ow >or</span> <span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=p >,</span>
         <span class=p >)</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_param_options</span> <span class=o >=</span> <span class=n >param_options</span>
@@ -171,7 +201,7 @@
     <span class=c1 >#     """Delete a widget by integer or slice index."""</span>
     <span class=c1 >#     raise AttributeError("can't delete items from a FunctionGui")</span>
 
-    <span class=k >def</span> <span class=fm >__call__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >:</span> <span class=n >Any</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >:</span> <span class=n >Any</span><span class=p >):</span>
+    <span class=k >def</span> <span class=fm >__call__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >:</span> <span class=n >Any</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >:</span> <span class=n >Any</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >_R</span><span class=p >:</span>
         <span class=sd >"""Call the original function with the current parameter values from the Gui.</span>
 
 <span class=sd >        It is also possible to override the current parameter values from the GUI by</span>
@@ -199,12 +229,12 @@
                 <span class=n >match</span> <span class=o >=</span> <span class=n >re</span><span class=o >.</span><span class=n >search</span><span class=p >(</span><span class=s2 >"argument: '(.+)'"</span><span class=p >,</span> <span class=nb >str</span><span class=p >(</span><span class=n >e</span><span class=p >))</span>
                 <span class=n >missing</span> <span class=o >=</span> <span class=n >match</span><span class=o >.</span><span class=n >groups</span><span class=p >()[</span><span class=mi >0</span><span class=p >]</span> <span class=k >if</span> <span class=n >match</span> <span class=k >else</span> <span class=s2 >"&lt;param&gt;"</span>
                 <span class=n >msg</span> <span class=o >=</span> <span class=p >(</span>
-                    <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >e</span><span class=si >}</span><span class=s2 > in call to '</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >'.</span><span class=se >\n</span><span class=s2 >"</span>
+                    <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >e</span><span class=si >}</span><span class=s2 > in call to '</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >'.</span><span class=se >\n</span><span class=s2 >"</span>
                     <span class=s2 >"To avoid this error, you can bind a value or callback to the "</span>
-                    <span class=sa >f</span><span class=s2 >"parameter:</span><span class=se >\n\n</span><span class=s2 >    </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >missing</span><span class=si >}</span><span class=s2 >.bind(value)"</span>
+                    <span class=sa >f</span><span class=s2 >"parameter:</span><span class=se >\n\n</span><span class=s2 >    </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=n >missing</span><span class=si >}</span><span class=s2 >.bind(value)"</span>
                     <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >Or use the 'bind' option in the magicgui decorator:</span><span class=se >\n\n</span><span class=s2 >"</span>
                     <span class=sa >f</span><span class=s2 >"    @magicgui(</span><span class=si >{</span><span class=n >missing</span><span class=si >}</span><span class=s2 >=</span><span class=se >{{</span><span class=s2 >'bind': value</span><span class=se >}}</span><span class=s2 >)</span><span class=se >\n</span><span class=s2 >"</span>
-                    <span class=sa >f</span><span class=s2 >"    def </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >: ..."</span>
+                    <span class=sa >f</span><span class=s2 >"    def </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}{</span><span class=n >sig</span><span class=si >}</span><span class=s2 >: ..."</span>
                 <span class=p >)</span>
                 <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=n >msg</span><span class=p >)</span> <span class=kn >from</span> <span class=bp >None</span>
             <span class=k >else</span><span class=p >:</span>
@@ -212,7 +242,9 @@
 
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
-        <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=k >with</span> <span class=n >_function_name_pointing_to_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+            <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
+
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >+=</span> <span class=mi >1</span>
         <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
             <span class=k >with</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >blocker</span><span class=p >():</span>
@@ -229,20 +261,19 @@
 
     <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
         <span class=sd >"""Return string representation of instance."""</span>
-        <span class=n >fname</span> <span class=o >=</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__module__</span><span class=si >}</span><span class=s2 >.</span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 >"</span>
-        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;FunctionGui </span><span class=si >{</span><span class=n >fname</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span><span class=si >}</span><span class=s2 >&gt;"</span>
+        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;FunctionGui </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span><span class=si >}</span><span class=s2 >&gt;"</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >result_name</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
         <span class=sd >"""Return a name that can be used for the result of this magicfunction."""</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=ow >or</span> <span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=o >.</span><span class=vm >__name__</span> <span class=o >+</span> <span class=s2 >" result"</span><span class=p >)</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=ow >or</span> <span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span> <span class=o >+</span> <span class=s2 >" result"</span><span class=p >)</span>
 
     <span class=nd >@result_name</span><span class=o >.</span><span class=n >setter</span>
     <span class=k >def</span> <span class=nf >result_name</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >str</span><span class=p >):</span>
         <span class=sd >"""Set the result name of this FunctionGui widget."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=n >value</span>
 
-    <span class=k >def</span> <span class=nf >copy</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=s2 >"FunctionGui"</span><span class=p >:</span>
+    <span class=k >def</span> <span class=nf >copy</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >FunctionGui</span><span class=p >:</span>
         <span class=sd >"""Return a copy of this FunctionGui."""</span>
         <span class=k >return</span> <span class=n >FunctionGui</span><span class=p >(</span>
             <span class=n >function</span><span class=o >=</span><span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >,</span>
@@ -310,7 +341,7 @@
         <span class=k >return</span> <span class=bp >self</span></div>
 
 
-<span class=k >class</span> <span class=nc >MainFunctionGui</span><span class=p >(</span><span class=n >FunctionGui</span><span class=p >,</span> <span class=n >MainWindow</span><span class=p >):</span>
+<span class=k >class</span> <span class=nc >MainFunctionGui</span><span class=p >(</span><span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >],</span> <span class=n >MainWindow</span><span class=p >):</span>
     <span class=sd >"""Container of widgets as a Main Application Window."""</span>
 
     <span class=n >_widget</span><span class=p >:</span> <span class=n >MainWindowProtocol</span>
@@ -346,4 +377,56 @@
     <span class=n >short</span> <span class=o >=</span> <span class=sa >f</span><span class=s2 >"&lt;p&gt;</span><span class=si >{</span><span class=n >ds</span><span class=o >.</span><span class=n >short_description</span><span class=si >}</span><span class=s2 >&lt;/p&gt;"</span> <span class=k >if</span> <span class=n >ds</span><span class=o >.</span><span class=n >short_description</span> <span class=k >else</span> <span class=s2 >""</span>
     <span class=n >long</span> <span class=o >=</span> <span class=sa >f</span><span class=s2 >"&lt;p&gt;</span><span class=si >{</span><span class=n >ds</span><span class=o >.</span><span class=n >long_description</span><span class=si >}</span><span class=s2 >&lt;/p&gt;"</span> <span class=k >if</span> <span class=n >ds</span><span class=o >.</span><span class=n >long_description</span> <span class=k >else</span> <span class=s2 >""</span>
     <span class=k >return</span> <span class=n >re</span><span class=o >.</span><span class=n >sub</span><span class=p >(</span><span class=sa >r</span><span class=s2 >"``?([^`]+)``?"</span><span class=p >,</span> <span class=sa >r</span><span class=s2 >"&lt;code&gt;\1&lt;/code&gt;"</span><span class=p >,</span> <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >short</span><span class=si >}{</span><span class=n >long</span><span class=si >}{</span><span class=n >params</span><span class=si >}</span><span class=s2 >"</span><span class=p >)</span>
+
+
+<span class=n >_UNSET</span> <span class=o >=</span> <span class=nb >object</span><span class=p >()</span>
+
+
+<span class=nd >@contextmanager</span>
+<span class=k >def</span> <span class=nf >_function_name_pointing_to_widget</span><span class=p >(</span><span class=n >function_gui</span><span class=p >:</span> <span class=n >FunctionGui</span><span class=p >):</span>
+    <span class=sd >"""Context in which the name of the function points to the function_gui instance.</span>
+
+<span class=sd >    When calling the function provided to FunctionGui, we make sure that the name</span>
+<span class=sd >    of the function points to the FunctionGui object itself.</span>
+<span class=sd >    In standard ``@magicgui`` usage, this will have been the case anyway.</span>
+<span class=sd >    Doing this here allows the function name in a ``@magic_factory``-decorated function</span>
+<span class=sd >    to *also* refer to the function gui instance created by the factory, (rather than</span>
+<span class=sd >    to the :class:`~magicgui._magicgui.MagicFactory` object).</span>
+
+<span class=sd >    Examples</span>
+<span class=sd >    --------</span>
+<span class=sd >    &gt;&gt;&gt; @magicgui</span>
+<span class=sd >    &gt;&gt;&gt; def func():</span>
+<span class=sd >    ...     # using "func" in the body here will refer to the widget.</span>
+<span class=sd >    ...     print(type(func))</span>
+<span class=sd >    &gt;&gt;&gt;</span>
+<span class=sd >    &gt;&gt;&gt; func()  # prints 'magicgui.widgets._function_gui.FunctionGui'</span>
+
+<span class=sd >    &gt;&gt;&gt; @magic_factory</span>
+<span class=sd >    &gt;&gt;&gt; def func():</span>
+<span class=sd >    ...     # using "func" in the body here will refer to the *widget* not the factory.</span>
+<span class=sd >    ...     print(type(func))</span>
+<span class=sd >    &gt;&gt;&gt;</span>
+<span class=sd >    &gt;&gt;&gt; widget = func()</span>
+<span class=sd >    &gt;&gt;&gt; widget()  # *also* prints 'magicgui.widgets._function_gui.FunctionGui'</span>
+<span class=sd >    """</span>
+    <span class=n >function</span> <span class=o >=</span> <span class=n >function_gui</span><span class=o >.</span><span class=n >_function</span>
+    <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=n >FunctionType</span><span class=p >):</span>
+        <span class=k >yield</span>
+        <span class=k >return</span>
+
+    <span class=n >func_name</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__name__</span>
+    <span class=c1 ># function.__globals__ here points to the module-level globals in which the function</span>
+    <span class=c1 ># was defined.  This means that this will NOT work for factories defined inside</span>
+    <span class=c1 ># other functions.  we use `_UNSET` just in case the function name has somehow been</span>
+    <span class=c1 ># deleted or does not exist in the function module's globals()</span>
+    <span class=n >original_value</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=n >func_name</span><span class=p >,</span> <span class=n >_UNSET</span><span class=p >)</span>
+    <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span> <span class=o >=</span> <span class=n >function_gui</span>
+    <span class=k >try</span><span class=p >:</span>
+        <span class=k >yield</span>
+    <span class=k >finally</span><span class=p >:</span>
+        <span class=k >if</span> <span class=n >original_value</span> <span class=ow >is</span> <span class=n >_UNSET</span><span class=p >:</span>
+            <span class=k >del</span> <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span>
+        <span class=k >else</span><span class=p >:</span>
+            <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span> <span class=o >=</span> <span class=n >original_value</span>
 </pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.3. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
