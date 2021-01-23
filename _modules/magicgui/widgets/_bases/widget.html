@@ -46,7 +46,7 @@
 
     <span class=n >_widget</span><span class=p >:</span> <span class=n >_protocols</span><span class=o >.</span><span class=n >WidgetProtocol</span>
     <span class=c1 ># if this widget becomes owned by a labeled widget</span>
-    <span class=n >_labeled_widget</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=s2 >"ReferenceType[_LabeledWidget]"</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
+    <span class=n >_labeled_widget_ref</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=s2 >"ReferenceType[_LabeledWidget]"</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
 
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span>
         <span class=bp >self</span><span class=p >,</span>
@@ -250,14 +250,18 @@
         <span class=sd >"""Set the tooltip for this widget."""</span>
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_tooltip</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
 
+    <span class=k >def</span> <span class=nf >_labeled_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Optional</span><span class=p >[</span><span class=n >_LabeledWidget</span><span class=p >]:</span>
+        <span class=sd >"""Return _LabeledWidget container, if applicable."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget_ref</span><span class=p >()</span> <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget_ref</span> <span class=k >else</span> <span class=kc >None</span>
+
     <span class=k >def</span> <span class=nf >show</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >run</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
         <span class=sd >"""Show the widget."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_show_widget</span><span class=p >()</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >True</span>
-        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=n >w</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
-            <span class=k >if</span> <span class=n >w</span><span class=p >:</span>
-                <span class=n >w</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
+
+        <span class=n >labeled_widget</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
+        <span class=k >if</span> <span class=n >labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
+            <span class=n >labeled_widget</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
         <span class=k >if</span> <span class=n >run</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=n >run</span><span class=p >()</span>
         <span class=k >return</span> <span class=bp >self</span>  <span class=c1 ># useful for generating repr in sphinx</span>
@@ -275,10 +279,10 @@
         <span class=sd >"""Hide widget."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_hide_widget</span><span class=p >()</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >False</span>
-        <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=n >w</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
-            <span class=k >if</span> <span class=n >w</span><span class=p >:</span>
-                <span class=n >w</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
+
+        <span class=n >labeled_widget</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
+        <span class=k >if</span> <span class=n >labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
+            <span class=n >labeled_widget</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
 
     <span class=k >def</span> <span class=nf >render</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=s2 >"np.ndarray"</span><span class=p >:</span>
         <span class=sd >"""Return an RGBA (MxNx4) numpy array bitmap of the rendered widget."""</span>
