@@ -261,6 +261,24 @@
 <span class=k >class</span> <span class=nc >ProgressBar</span><span class=p >(</span><span class=n >SliderWidget</span><span class=p >):</span>
     <span class=sd >"""A progress bar widget."""</span>
 
+    <span class=k >def</span> <span class=nf >increment</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >val</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
+        <span class=sd >"""Increase current value by step size, or provided value."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >get_value</span><span class=p >()</span> <span class=o >+</span> <span class=p >(</span><span class=n >val</span> <span class=k >if</span> <span class=n >val</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span> <span class=k >else</span> <span class=bp >self</span><span class=o >.</span><span class=n >step</span><span class=p >)</span>
+
+    <span class=k >def</span> <span class=nf >decrement</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >val</span><span class=o >=</span><span class=kc >None</span><span class=p >):</span>
+        <span class=sd >"""Decrease current value by step size, or provided value."""</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >get_value</span><span class=p >()</span> <span class=o >-</span> <span class=p >(</span><span class=n >val</span> <span class=k >if</span> <span class=n >val</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span> <span class=k >else</span> <span class=bp >self</span><span class=o >.</span><span class=n >step</span><span class=p >)</span>
+
+    <span class=c1 ># overriding because at least some backends don't have a step value for ProgressBar</span>
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >step</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >float</span><span class=p >:</span>
+        <span class=sd >"""Step size for widget values."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_step</span>
+
+    <span class=nd >@step</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >step</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >float</span><span class=p >):</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_step</span> <span class=o >=</span> <span class=n >value</span>
+
 
 <span class=nd >@backend_widget</span>
 <span class=k >class</span> <span class=nc >Slider</span><span class=p >(</span><span class=n >SliderWidget</span><span class=p >):</span>

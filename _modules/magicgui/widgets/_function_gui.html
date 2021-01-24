@@ -8,14 +8,25 @@
 <span class=kn >import</span> <span class=nn >inspect</span>
 <span class=kn >import</span> <span class=nn >re</span>
 <span class=kn >import</span> <span class=nn >warnings</span>
+<span class=kn >from</span> <span class=nn >collections</span> <span class=kn >import</span> <span class=n >deque</span>
 <span class=kn >from</span> <span class=nn >contextlib</span> <span class=kn >import</span> <span class=n >contextmanager</span>
 <span class=kn >from</span> <span class=nn >types</span> <span class=kn >import</span> <span class=n >FunctionType</span>
-<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Dict</span><span class=p >,</span> <span class=n >Generic</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >TypeVar</span><span class=p >,</span> <span class=n >Union</span>
+<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=p >(</span>
+    <span class=n >TYPE_CHECKING</span><span class=p >,</span>
+    <span class=n >Any</span><span class=p >,</span>
+    <span class=n >Callable</span><span class=p >,</span>
+    <span class=n >Deque</span><span class=p >,</span>
+    <span class=n >Dict</span><span class=p >,</span>
+    <span class=n >Generic</span><span class=p >,</span>
+    <span class=n >Optional</span><span class=p >,</span>
+    <span class=n >TypeVar</span><span class=p >,</span>
+    <span class=n >Union</span><span class=p >,</span>
+<span class=p >)</span>
 
 <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
 <span class=kn >from</span> <span class=nn >magicgui.events</span> <span class=kn >import</span> <span class=n >EventEmitter</span>
 <span class=kn >from</span> <span class=nn >magicgui.signature</span> <span class=kn >import</span> <span class=n >MagicSignature</span><span class=p >,</span> <span class=n >magic_signature</span>
-<span class=kn >from</span> <span class=nn >magicgui.widgets</span> <span class=kn >import</span> <span class=n >Container</span><span class=p >,</span> <span class=n >LineEdit</span><span class=p >,</span> <span class=n >MainWindow</span><span class=p >,</span> <span class=n >PushButton</span>
+<span class=kn >from</span> <span class=nn >magicgui.widgets</span> <span class=kn >import</span> <span class=n >Container</span><span class=p >,</span> <span class=n >LineEdit</span><span class=p >,</span> <span class=n >MainWindow</span><span class=p >,</span> <span class=n >ProgressBar</span><span class=p >,</span> <span class=n >PushButton</span>
 <span class=kn >from</span> <span class=nn >magicgui.widgets._protocols</span> <span class=kn >import</span> <span class=n >ContainerProtocol</span><span class=p >,</span> <span class=n >MainWindowProtocol</span>
 
 <span class=k >if</span> <span class=n >TYPE_CHECKING</span><span class=p >:</span>
@@ -155,6 +166,11 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_name</span> <span class=o >=</span> <span class=s2 >""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span><span class=p >:</span> <span class=nb >int</span> <span class=o >=</span> <span class=mi >0</span>
 
+        <span class=c1 ># a deque of Progressbars to be created by (possibly nested) tqdm_mgui iterators</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_tqdm_pbars</span><span class=p >:</span> <span class=n >Deque</span><span class=p >[</span><span class=n >ProgressBar</span><span class=p >]</span> <span class=o >=</span> <span class=n >deque</span><span class=p >()</span>
+        <span class=c1 ># the nesting level of tqdm_mgui iterators in a given __call__</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_tqdm_depth</span><span class=p >:</span> <span class=nb >int</span> <span class=o >=</span> <span class=mi >0</span>
+
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >PushButton</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
         <span class=k >if</span> <span class=n >call_button</span><span class=p >:</span>
             <span class=n >text</span> <span class=o >=</span> <span class=n >call_button</span> <span class=k >if</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >call_button</span><span class=p >,</span> <span class=nb >str</span><span class=p >)</span> <span class=k >else</span> <span class=s2 >"Run"</span>
@@ -242,6 +258,7 @@
 
         <span class=n >bound</span><span class=o >.</span><span class=n >apply_defaults</span><span class=p >()</span>
 
+        <span class=bp >self</span><span class=o >.</span><span class=n >_tqdm_depth</span> <span class=o >=</span> <span class=mi >0</span>  <span class=c1 ># reset the tqdm stack count</span>
         <span class=k >with</span> <span class=n >_function_name_pointing_to_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
             <span class=n >value</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_function</span><span class=p >(</span><span class=o >*</span><span class=n >bound</span><span class=o >.</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >bound</span><span class=o >.</span><span class=n >kwargs</span><span class=p >)</span>
 

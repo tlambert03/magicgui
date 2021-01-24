@@ -99,6 +99,10 @@
 <span class=k >def</span> <span class=nf >simple_types</span><span class=p >(</span><span class=n >value</span><span class=p >,</span> <span class=n >annotation</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Optional</span><span class=p >[</span><span class=n >WidgetTuple</span><span class=p >]:</span>
     <span class=sd >"""Check simple type mappings."""</span>
     <span class=n >dtype</span> <span class=o >=</span> <span class=n >_normalize_type</span><span class=p >(</span><span class=n >value</span><span class=p >,</span> <span class=n >annotation</span><span class=p >)</span>
+
+    <span class=k >if</span> <span class=n >dtype</span> <span class=ow >is</span> <span class=n >widgets</span><span class=o >.</span><span class=n >ProgressBar</span><span class=p >:</span>
+        <span class=k >return</span> <span class=n >widgets</span><span class=o >.</span><span class=n >ProgressBar</span><span class=p >,</span> <span class=p >{</span><span class=s2 >"bind"</span><span class=p >:</span> <span class=k >lambda</span> <span class=n >widget</span><span class=p >:</span> <span class=n >widget</span><span class=p >,</span> <span class=s2 >"visible"</span><span class=p >:</span> <span class=kc >True</span><span class=p >}</span>
+
     <span class=n >simple</span> <span class=o >=</span> <span class=p >{</span>
         <span class=nb >bool</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >CheckBox</span><span class=p >,</span>
         <span class=nb >int</span><span class=p >:</span> <span class=n >widgets</span><span class=o >.</span><span class=n >SpinBox</span><span class=p >,</span>

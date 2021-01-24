@@ -17,10 +17,16 @@
       ~ProgressBar.bind
       
       
+      ~ProgressBar.decrement
+      
+      
       ~ProgressBar.get_value
       
       
       ~ProgressBar.hide
+      
+      
+      ~ProgressBar.increment
       
       
       ~ProgressBar.render
