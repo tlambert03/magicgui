@@ -58,6 +58,7 @@
       ~TextEdit.read_only
       ~TextEdit.tooltip
       ~TextEdit.value
+      ~TextEdit.visible
       ~TextEdit.widget_type
       ~TextEdit.width
    

@@ -68,6 +68,7 @@
       ~ProgressBar.step
       ~ProgressBar.tooltip
       ~ProgressBar.value
+      ~ProgressBar.visible
       ~ProgressBar.widget_type
       ~ProgressBar.width
    

@@ -55,7 +55,7 @@
         <span class=n >annotation</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=n >label</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=n >tooltip</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-        <span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
+        <span class=n >visible</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=nb >bool</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
         <span class=n >enabled</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
         <span class=n >gui_only</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
         <span class=n >backend_kwargs</span><span class=o >=</span><span class=nb >dict</span><span class=p >(),</span>
@@ -86,7 +86,6 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >enabled</span> <span class=o >=</span> <span class=n >enabled</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >annotation</span><span class=p >:</span> <span class=n >Any</span> <span class=o >=</span> <span class=n >annotation</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >gui_only</span> <span class=o >=</span> <span class=n >gui_only</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >parent_changed</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=n >source</span><span class=o >=</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"parent_changed"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >label_changed</span> <span class=o >=</span> <span class=n >EventEmitter</span><span class=p >(</span><span class=n >source</span><span class=o >=</span><span class=bp >self</span><span class=p >,</span> <span class=nb >type</span><span class=o >=</span><span class=s2 >"label_changed"</span><span class=p >)</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_bind_parent_change_callback</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_emit_parent</span><span class=p >)</span>
@@ -94,8 +93,10 @@
         <span class=c1 ># put the magicgui widget on the native object...may cause error on some backend</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >native</span><span class=o >.</span><span class=n >_magic_widget</span> <span class=o >=</span> <span class=bp >self</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_post_init</span><span class=p >()</span>
-        <span class=k >if</span> <span class=ow >not</span> <span class=n >visible</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_explicitly_hidden</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span>
+        <span class=k >if</span> <span class=n >visible</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
+            <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=n >visible</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >annotation</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
@@ -254,14 +255,39 @@
         <span class=sd >"""Return _LabeledWidget container, if applicable."""</span>
         <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget_ref</span><span class=p >()</span> <span class=k >if</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget_ref</span> <span class=k >else</span> <span class=kc >None</span>
 
-    <span class=k >def</span> <span class=nf >show</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >run</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
-        <span class=sd >"""Show the widget."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_show_widget</span><span class=p >()</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >True</span>
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >visible</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >bool</span><span class=p >:</span>
+        <span class=sd >"""Return whether widget is visible."""</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_get_visible</span><span class=p >()</span>
+
+    <span class=nd >@visible</span><span class=o >.</span><span class=n >setter</span>
+    <span class=k >def</span> <span class=nf >visible</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >bool</span><span class=p >):</span>
+        <span class=sd >"""Set widget visibility.</span>
+
+<span class=sd >        ``widget.show()`` is an alias for ``widget.visible = True``</span>
+<span class=sd >        ``widget.hide()`` is an alias for ``widget.visible = False``</span>
+<span class=sd >        """</span>
+        <span class=k >if</span> <span class=n >value</span> <span class=ow >is</span> <span class=kc >None</span><span class=p >:</span>
+            <span class=k >return</span>
+
+        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_set_visible</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >_explicitly_hidden</span> <span class=o >=</span> <span class=ow >not</span> <span class=n >value</span>
 
         <span class=n >labeled_widget</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
         <span class=k >if</span> <span class=n >labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=n >labeled_widget</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
+            <span class=n >labeled_widget</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=n >value</span>
+
+    <span class=k >def</span> <span class=nf >show</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >run</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
+        <span class=sd >"""Show widget.</span>
+
+<span class=sd >        alias for ``widget.visible = True``</span>
+
+<span class=sd >        Parameters</span>
+<span class=sd >        ----------</span>
+<span class=sd >        run : bool, optional</span>
+<span class=sd >            Whether to start the application event loop, by default False</span>
+<span class=sd >        """</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >True</span>
         <span class=k >if</span> <span class=n >run</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=n >run</span><span class=p >()</span>
         <span class=k >return</span> <span class=bp >self</span>  <span class=c1 ># useful for generating repr in sphinx</span>
@@ -276,13 +302,11 @@
             <span class=bp >self</span><span class=o >.</span><span class=n >__magicgui_app__</span><span class=o >.</span><span class=fm >__exit__</span><span class=p >()</span>
 
     <span class=k >def</span> <span class=nf >hide</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
-        <span class=sd >"""Hide widget."""</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >_widget</span><span class=o >.</span><span class=n >_mgui_hide_widget</span><span class=p >()</span>
-        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >False</span>
+        <span class=sd >"""Hide widget.</span>
 
-        <span class=n >labeled_widget</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_labeled_widget</span><span class=p >()</span>
-        <span class=k >if</span> <span class=n >labeled_widget</span> <span class=ow >is</span> <span class=ow >not</span> <span class=kc >None</span><span class=p >:</span>
-            <span class=n >labeled_widget</span><span class=o >.</span><span class=n >hide</span><span class=p >()</span>
+<span class=sd >        alias for ``widget.visible = False``</span>
+<span class=sd >        """</span>
+        <span class=bp >self</span><span class=o >.</span><span class=n >visible</span> <span class=o >=</span> <span class=kc >False</span>
 
     <span class=k >def</span> <span class=nf >render</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=s2 >"np.ndarray"</span><span class=p >:</span>
         <span class=sd >"""Return an RGBA (MxNx4) numpy array bitmap of the rendered widget."""</span>

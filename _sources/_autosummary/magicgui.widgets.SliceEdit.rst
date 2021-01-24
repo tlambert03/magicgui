@@ -92,6 +92,7 @@
       ~SliceEdit.return_annotation
       ~SliceEdit.tooltip
       ~SliceEdit.value
+      ~SliceEdit.visible
       ~SliceEdit.widget_type
       ~SliceEdit.width
    

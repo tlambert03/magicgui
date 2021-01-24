@@ -57,6 +57,7 @@
       ~Label.parent
       ~Label.tooltip
       ~Label.value
+      ~Label.visible
       ~Label.widget_type
       ~Label.width
    

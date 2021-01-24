@@ -61,6 +61,7 @@
       ~SpinBox.step
       ~SpinBox.tooltip
       ~SpinBox.value
+      ~SpinBox.visible
       ~SpinBox.widget_type
       ~SpinBox.width
    

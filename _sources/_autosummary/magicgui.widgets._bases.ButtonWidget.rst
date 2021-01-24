@@ -58,6 +58,7 @@
       ~ButtonWidget.text
       ~ButtonWidget.tooltip
       ~ButtonWidget.value
+      ~ButtonWidget.visible
       ~ButtonWidget.widget_type
       ~ButtonWidget.width
    

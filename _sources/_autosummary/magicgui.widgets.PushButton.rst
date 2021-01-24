@@ -58,6 +58,7 @@
       ~PushButton.text
       ~PushButton.tooltip
       ~PushButton.value
+      ~PushButton.visible
       ~PushButton.widget_type
       ~PushButton.width
    

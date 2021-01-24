@@ -58,6 +58,7 @@
       ~CheckBox.text
       ~CheckBox.tooltip
       ~CheckBox.value
+      ~CheckBox.visible
       ~CheckBox.widget_type
       ~CheckBox.width
    

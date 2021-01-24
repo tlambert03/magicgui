@@ -102,6 +102,7 @@
       ~FunctionGui.result_name
       ~FunctionGui.return_annotation
       ~FunctionGui.tooltip
+      ~FunctionGui.visible
       ~FunctionGui.widget_type
       ~FunctionGui.width
    

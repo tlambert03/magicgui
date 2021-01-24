@@ -57,6 +57,7 @@
       ~ValueWidget.parent
       ~ValueWidget.tooltip
       ~ValueWidget.value
+      ~ValueWidget.visible
       ~ValueWidget.widget_type
       ~ValueWidget.width
    

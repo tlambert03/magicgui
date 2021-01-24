@@ -71,6 +71,7 @@
       ~CategoricalWidget.parent
       ~CategoricalWidget.tooltip
       ~CategoricalWidget.value
+      ~CategoricalWidget.visible
       ~CategoricalWidget.widget_type
       ~CategoricalWidget.width
    

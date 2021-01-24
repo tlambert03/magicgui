@@ -85,7 +85,7 @@
 <span class=sd >        Whether tooltips are shown when hovering over widgets. by default True</span>
 <span class=sd >    app : magicgui.Application or str, optional</span>
 <span class=sd >        A backend to use, by default ``None`` (use the default backend.)</span>
-<span class=sd >    show : bool, optional</span>
+<span class=sd >    visible : bool, optional</span>
 <span class=sd >        Whether to immediately show the widget, by default False</span>
 <span class=sd >    auto_call : bool, optional</span>
 <span class=sd >        If True, changing any parameter in either the GUI or the widget attributes</span>
@@ -116,7 +116,7 @@
         <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
         <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
         <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-        <span class=n >show</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
+        <span class=n >visible</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
         <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
         <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
         <span class=n >param_options</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >Dict</span><span class=p >[</span><span class=nb >str</span><span class=p >,</span> <span class=nb >dict</span><span class=p >]]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
@@ -156,6 +156,7 @@
         <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__init__</span><span class=p >(</span>
             <span class=n >layout</span><span class=o >=</span><span class=n >layout</span><span class=p >,</span>
             <span class=n >labels</span><span class=o >=</span><span class=n >labels</span><span class=p >,</span>
+            <span class=n >visible</span><span class=o >=</span><span class=n >visible</span><span class=p >,</span>
             <span class=n >widgets</span><span class=o >=</span><span class=nb >list</span><span class=p >(</span><span class=n >sig</span><span class=o >.</span><span class=n >widgets</span><span class=p >(</span><span class=n >app</span><span class=p >)</span><span class=o >.</span><span class=n >values</span><span class=p >()),</span>
             <span class=n >return_annotation</span><span class=o >=</span><span class=n >sig</span><span class=o >.</span><span class=n >return_annotation</span><span class=p >,</span>
             <span class=n >name</span><span class=o >=</span><span class=n >name</span> <span class=ow >or</span> <span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=p >,</span>
@@ -188,9 +189,6 @@
         <span class=bp >self</span><span class=o >.</span><span class=n >_auto_call</span> <span class=o >=</span> <span class=n >auto_call</span>
         <span class=k >if</span> <span class=n >auto_call</span><span class=p >:</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >connect</span><span class=p >(</span><span class=k >lambda</span> <span class=n >e</span><span class=p >:</span> <span class=bp >self</span><span class=o >.</span><span class=fm >__call__</span><span class=p >())</span>
-
-        <span class=k >if</span> <span class=n >show</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >int</span><span class=p >:</span>
@@ -278,7 +276,7 @@
 
     <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
         <span class=sd >"""Return string representation of instance."""</span>
-        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;FunctionGui </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span><span class=si >}</span><span class=s2 >&gt;"</span>
+        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"&lt;</span><span class=si >{</span><span class=nb >type</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span><span class=o >.</span><span class=vm >__name__</span><span class=si >}</span><span class=s2 > </span><span class=si >{</span><span class=bp >self</span><span class=o >.</span><span class=n >_callable_name</span><span class=si >}{</span><span class=bp >self</span><span class=o >.</span><span class=n >__signature__</span><span class=si >}</span><span class=s2 >&gt;"</span>
 
     <span class=nd >@property</span>
     <span class=k >def</span> <span class=nf >result_name</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>

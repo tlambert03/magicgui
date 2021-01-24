@@ -57,6 +57,7 @@
       ~LiteralEvalLineEdit.parent
       ~LiteralEvalLineEdit.tooltip
       ~LiteralEvalLineEdit.value
+      ~LiteralEvalLineEdit.visible
       ~LiteralEvalLineEdit.widget_type
       ~LiteralEvalLineEdit.width
    

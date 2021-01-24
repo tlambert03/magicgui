@@ -57,6 +57,7 @@
       ~LineEdit.parent
       ~LineEdit.tooltip
       ~LineEdit.value
+      ~LineEdit.visible
       ~LineEdit.widget_type
       ~LineEdit.width
    

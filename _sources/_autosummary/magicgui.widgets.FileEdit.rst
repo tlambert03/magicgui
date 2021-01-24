@@ -93,6 +93,7 @@
       ~FileEdit.return_annotation
       ~FileEdit.tooltip
       ~FileEdit.value
+      ~FileEdit.visible
       ~FileEdit.widget_type
       ~FileEdit.width
    

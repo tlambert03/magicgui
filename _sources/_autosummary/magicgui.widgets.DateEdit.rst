@@ -57,6 +57,7 @@
       ~DateEdit.parent
       ~DateEdit.tooltip
       ~DateEdit.value
+      ~DateEdit.visible
       ~DateEdit.widget_type
       ~DateEdit.width
    

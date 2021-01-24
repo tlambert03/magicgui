@@ -91,6 +91,7 @@
       ~Container.parent
       ~Container.return_annotation
       ~Container.tooltip
+      ~Container.visible
       ~Container.widget_type
       ~Container.width
    

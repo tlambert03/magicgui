@@ -62,6 +62,7 @@
       ~FloatSlider.step
       ~FloatSlider.tooltip
       ~FloatSlider.value
+      ~FloatSlider.visible
       ~FloatSlider.widget_type
       ~FloatSlider.width
    

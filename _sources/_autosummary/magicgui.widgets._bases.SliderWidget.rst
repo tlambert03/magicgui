@@ -62,6 +62,7 @@
       ~SliderWidget.step
       ~SliderWidget.tooltip
       ~SliderWidget.value
+      ~SliderWidget.visible
       ~SliderWidget.widget_type
       ~SliderWidget.width
    

@@ -57,6 +57,7 @@
       ~TimeEdit.parent
       ~TimeEdit.tooltip
       ~TimeEdit.value
+      ~TimeEdit.visible
       ~TimeEdit.widget_type
       ~TimeEdit.width
    

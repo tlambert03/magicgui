@@ -62,6 +62,7 @@
       ~LogSlider.step
       ~LogSlider.tooltip
       ~LogSlider.value
+      ~LogSlider.visible
       ~LogSlider.widget_type
       ~LogSlider.width
    

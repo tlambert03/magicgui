@@ -71,6 +71,7 @@
       ~ComboBox.parent
       ~ComboBox.tooltip
       ~ComboBox.value
+      ~ComboBox.visible
       ~ComboBox.widget_type
       ~ComboBox.width
    

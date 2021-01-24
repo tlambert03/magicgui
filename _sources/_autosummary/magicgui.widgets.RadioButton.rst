@@ -58,6 +58,7 @@
       ~RadioButton.text
       ~RadioButton.tooltip
       ~RadioButton.value
+      ~RadioButton.visible
       ~RadioButton.widget_type
       ~RadioButton.width
    

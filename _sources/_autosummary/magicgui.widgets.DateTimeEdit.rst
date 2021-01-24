@@ -57,6 +57,7 @@
       ~DateTimeEdit.parent
       ~DateTimeEdit.tooltip
       ~DateTimeEdit.value
+      ~DateTimeEdit.visible
       ~DateTimeEdit.widget_type
       ~DateTimeEdit.width
    

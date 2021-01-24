@@ -56,14 +56,14 @@
     <span class=k >def</span> <span class=fm >__init__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
         <span class=k >pass</span>
 
-<div class=viewcode-block  id=WidgetProtocol._mgui_show_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_show_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_show_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=sd >"""Show the widget."""</span>
+<div class=viewcode-block  id=WidgetProtocol._mgui_get_visible ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_visible">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_get_visible</span><span class=p >(</span><span class=bp >self</span><span class=p >):</span>
+        <span class=sd >"""Get widget visibility."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
-<div class=viewcode-block  id=WidgetProtocol._mgui_hide_widget ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_hide_widget">[docs]</a>    <span class=nd >@abstractmethod</span>
-    <span class=k >def</span> <span class=nf >_mgui_hide_widget</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=sd >"""Hide the widget."""</span>
+<div class=viewcode-block  id=WidgetProtocol._mgui_set_visible ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_set_visible">[docs]</a>    <span class=nd >@abstractmethod</span>
+    <span class=k >def</span> <span class=nf >_mgui_set_visible</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >:</span> <span class=nb >bool</span><span class=p >):</span>
+        <span class=sd >"""Set widget visibility."""</span>
         <span class=k >raise</span> <span class=ne >NotImplementedError</span><span class=p >()</span></div>
 
 <div class=viewcode-block  id=WidgetProtocol._mgui_get_enabled ><a class=viewcode-back  href="../../../_autosummary/magicgui.widgets._protocols.WidgetProtocol.html#magicgui.widgets._protocols.WidgetProtocol._mgui_get_enabled">[docs]</a>    <span class=nd >@abstractmethod</span>

@@ -61,6 +61,7 @@
       ~FloatSpinBox.step
       ~FloatSpinBox.tooltip
       ~FloatSpinBox.value
+      ~FloatSpinBox.visible
       ~FloatSpinBox.widget_type
       ~FloatSpinBox.width
    

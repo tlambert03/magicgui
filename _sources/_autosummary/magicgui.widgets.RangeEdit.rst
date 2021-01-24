@@ -92,6 +92,7 @@
       ~RangeEdit.return_annotation
       ~RangeEdit.tooltip
       ~RangeEdit.value
+      ~RangeEdit.visible
       ~RangeEdit.widget_type
       ~RangeEdit.width
    
