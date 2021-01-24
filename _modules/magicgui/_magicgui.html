@@ -3,130 +3,27 @@
 
 <span class=kn >import</span> <span class=nn >inspect</span>
 <span class=kn >from</span> <span class=nn >functools</span> <span class=kn >import</span> <span class=n >partial</span>
-<span class=kn >from</span> <span class=nn >types</span> <span class=kn >import</span> <span class=n >FunctionType</span>
-<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=p >(</span>
-    <span class=n >TYPE_CHECKING</span><span class=p >,</span>
-    <span class=n >Any</span><span class=p >,</span>
-    <span class=n >Callable</span><span class=p >,</span>
-    <span class=n >Generic</span><span class=p >,</span>
-    <span class=n >Optional</span><span class=p >,</span>
-    <span class=n >TypeVar</span><span class=p >,</span>
-    <span class=n >Union</span><span class=p >,</span>
-    <span class=n >overload</span><span class=p >,</span>
-<span class=p >)</span>
-<span class=kn >from</span> <span class=nn >warnings</span> <span class=kn >import</span> <span class=n >warn</span>
-
-<span class=kn >from</span> <span class=nn >typing_extensions</span> <span class=kn >import</span> <span class=n >Literal</span>
+<span class=kn >from</span> <span class=nn >typing</span> <span class=kn >import</span> <span class=n >TYPE_CHECKING</span><span class=p >,</span> <span class=n >Any</span><span class=p >,</span> <span class=n >Callable</span><span class=p >,</span> <span class=n >Optional</span><span class=p >,</span> <span class=n >Union</span>
 
 <span class=kn >from</span> <span class=nn >magicgui.widgets</span> <span class=kn >import</span> <span class=n >FunctionGui</span><span class=p >,</span> <span class=n >MainFunctionGui</span>
 
 <span class=k >if</span> <span class=n >TYPE_CHECKING</span><span class=p >:</span>
     <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
 
-<span class=n >_T</span> <span class=o >=</span> <span class=n >TypeVar</span><span class=p >(</span><span class=s2 >"_T"</span><span class=p >)</span>
-<span class=n >_R</span> <span class=o >=</span> <span class=n >TypeVar</span><span class=p >(</span><span class=s2 >"_R"</span><span class=p >)</span>
-
-
-<span class=k >def</span> <span class=nf >_magicgui</span><span class=p >(</span><span class=n >function</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span> <span class=n >factory</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span> <span class=n >main_window</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
-    <span class=sd >"""Actual private magicui decorator.</span>
-
-<span class=sd >    if factory is `True` will return a MagicFactory instance, that can be called</span>
-<span class=sd >    to return a `FunctionGui` instance.  See docstring of ``magicgui`` for parameters.</span>
-<span class=sd >    Otherwise, this will return a FunctionGui instance directly.</span>
-<span class=sd >    """</span>
-
-    <span class=k >def</span> <span class=nf >inner_func</span><span class=p >(</span><span class=n >func</span><span class=p >:</span> <span class=n >Callable</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Union</span><span class=p >[</span><span class=n >FunctionGui</span><span class=p >,</span> <span class=n >MagicFactory</span><span class=p >]:</span>
-        <span class=k >if</span> <span class=ow >not</span> <span class=n >callable</span><span class=p >(</span><span class=n >func</span><span class=p >):</span>
-            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=s2 >"the first argument must be callable"</span><span class=p >)</span>
-
-        <span class=n >magic_class</span> <span class=o >=</span> <span class=n >MainFunctionGui</span> <span class=k >if</span> <span class=n >main_window</span> <span class=k >else</span> <span class=n >FunctionGui</span>
-
-        <span class=k >if</span> <span class=n >factory</span><span class=p >:</span>
-            <span class=k >return</span> <span class=n >MagicFactory</span><span class=p >(</span><span class=n >func</span><span class=p >,</span> <span class=n >magic_class</span><span class=o >=</span><span class=n >magic_class</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
-        <span class=c1 ># MagicFactory is more magical than necessary if we immediately instantiating,</span>
-        <span class=c1 ># so we shortcut that and just return the FunctionGui here.</span>
-        <span class=k >return</span> <span class=n >magic_class</span><span class=p >(</span><span class=n >func</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
-
-    <span class=k >if</span> <span class=n >function</span> <span class=ow >is</span> <span class=kc >None</span><span class=p >:</span>
-        <span class=k >return</span> <span class=n >inner_func</span>
-    <span class=k >else</span><span class=p >:</span>
-        <span class=k >return</span> <span class=n >inner_func</span><span class=p >(</span><span class=n >function</span><span class=p >)</span>
-
-
-<span class=c1 ># Overloads for magicgui decorator.  See implementation below</span>
-<span class=c1 ># TODO: figure out how to get these in a stub file.</span>
-<span class=c1 ># My first attempts to put them in ``_magicgui.pyi`` broke my type hints in VSCode</span>
-<span class=c1 ># fmt: off</span>
-<span class=nd >@overload</span>
-<span class=k >def</span> <span class=nf >magicgui</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >],</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >False</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magicgui</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >None</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >False</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Callable</span><span class=p >[[</span><span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >]],</span> <span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magicgui</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >],</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >True</span><span class=p >],</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >MainFunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magicgui</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >True</span><span class=p >],</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Callable</span><span class=p >[[</span><span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >]],</span> <span class=n >MainFunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]:</span> <span class=o >...</span>
-<span class=c1 ># fmt: on</span>
+<span class=n >__all__</span> <span class=o >=</span> <span class=p >[</span><span class=s2 >"magicgui"</span><span class=p >,</span> <span class=s2 >"magic_factory"</span><span class=p >,</span> <span class=s2 >"MagicFactory"</span><span class=p >]</span>
 
 
 <div class=viewcode-block  id=magicgui ><a class=viewcode-back  href="../../api/magicgui.html#magicgui.magicgui">[docs]</a><span class=k >def</span> <span class=nf >magicgui</span><span class=p >(</span>
-    <span class=n >function</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span>
+    <span class=n >function</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >Callable</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
     <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=o >=</span><span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=o >=</span><span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=o >=</span><span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span>
-    <span class=n >app</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span>
+    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"vertical"</span><span class=p >,</span>
+    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
+    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
+    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
+    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
+    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
+    <span class=n >main_window</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
+    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
     <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
 <span class=p >):</span>
     <span class=sd >"""Return a :class:`FunctionGui` for ``function``.</span>
@@ -138,7 +35,7 @@
 <span class=sd >        arguments. by default ``None``</span>
 <span class=sd >    layout : str, optional</span>
 <span class=sd >        The type of layout to use. Must be one of {'horizontal', 'vertical'}.</span>
-<span class=sd >        by default "horizontal".</span>
+<span class=sd >        by default "vertical".</span>
 <span class=sd >    labels : bool, optional</span>
 <span class=sd >        Whether labels are shown in the widget. by default True</span>
 <span class=sd >    tooltips : bool, optional</span>
@@ -153,7 +50,8 @@
 <span class=sd >        Whether to display a LineEdit widget the output of the function when called,</span>
 <span class=sd >        by default False</span>
 <span class=sd >    main_window : bool</span>
-<span class=sd >        Whether this widget should be treated as the main app window, with menu bar.</span>
+<span class=sd >        Whether this widget should be treated as the main app window, with menu bar,</span>
+<span class=sd >        by default True.</span>
 <span class=sd >    app : magicgui.Application or str, optional</span>
 <span class=sd >        A backend to use, by default ``None`` (use the default backend.)</span>
 
@@ -185,148 +83,10 @@
     <span class=k >return</span> <span class=n >_magicgui</span><span class=p >(</span><span class=o >**</span><span class=nb >locals</span><span class=p >())</span></div>
 
 
-<span class=k >class</span> <span class=nc >MagicFactory</span><span class=p >(</span><span class=n >partial</span><span class=p >,</span> <span class=n >Generic</span><span class=p >[</span><span class=n >_T</span><span class=p >]):</span>
-    <span class=sd >"""Factory function that returns a FunctionGui instance.</span>
-
-<span class=sd >    While this can be used directly, (see example below) the preferred usage is</span>
-<span class=sd >    via the :func:`magic_factory` decorator.</span>
-
-<span class=sd >    Examples</span>
-<span class=sd >    --------</span>
-<span class=sd >    &gt;&gt;&gt; def func(x: int, y: str):</span>
-<span class=sd >    ...     pass</span>
-<span class=sd >    ...</span>
-<span class=sd >    &gt;&gt;&gt; factory = MagicFactory(function=func, labels=False)</span>
-<span class=sd >    &gt;&gt;&gt; # factory accepts all the same arguments as magicgui()</span>
-<span class=sd >    &gt;&gt;&gt; widget1 = factory(call_button=True)</span>
-<span class=sd >    &gt;&gt;&gt; # can also override magic_kwargs that were provided when creating the factory</span>
-<span class=sd >    &gt;&gt;&gt; widget2 = factory(auto_call=True, labels=True)</span>
-<span class=sd >    """</span>
-
-    <span class=k >def</span> <span class=fm >__new__</span><span class=p >(</span><span class=bp >cls</span><span class=p >,</span> <span class=n >function</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=n >magic_class</span><span class=o >=</span><span class=n >FunctionGui</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >):</span>
-        <span class=sd >"""Create new MagicFactory."""</span>
-        <span class=k >if</span> <span class=ow >not</span> <span class=n >function</span><span class=p >:</span>
-            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span>
-                <span class=s2 >"MagicFactory missing required positional argument 'function'"</span>
-            <span class=p >)</span>
-
-        <span class=c1 ># if someone uses `@magic_factory` *inside* of another function (i.e., not in</span>
-        <span class=c1 ># the module-level scope), *and* they try to use the "self-reference trick",</span>
-        <span class=c1 ># (wherein they use the function name in the body of the function in order to</span>
-        <span class=c1 ># access the resulting FunctionGui instance)... it will not work.</span>
-        <span class=c1 ># here we detect that type of usage and give a warning.</span>
-        <span class=k >if</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=n >FunctionType</span><span class=p >):</span>
-            <span class=c1 ># this tells us the function has not been defined at the module level</span>
-            <span class=k >if</span> <span class=s2 >"&lt;locals&gt;"</span> <span class=ow >in</span> <span class=n >function</span><span class=o >.</span><span class=vm >__qualname__</span><span class=p >:</span>
-                <span class=c1 ># this tells us they are accessing an undefined variable *inside* of the</span>
-                <span class=c1 ># function that has the same name as the function.</span>
-                <span class=c1 ># https://docs.python.org/3/library/inspect.html?highlight=co_freevars</span>
-                <span class=k >if</span> <span class=n >function</span><span class=o >.</span><span class=vm >__name__</span> <span class=ow >in</span> <span class=n >function</span><span class=o >.</span><span class=vm >__code__</span><span class=o >.</span><span class=n >co_freevars</span><span class=p >:</span>
-                    <span class=n >warn</span><span class=p >(</span>
-                        <span class=s2 >"Self-reference detected in MagicFactory function created "</span>
-                        <span class=s2 >"in a local scope. FunctionGui references will not work."</span>
-                    <span class=p >)</span>
-
-        <span class=c1 ># we want function first for the repr</span>
-        <span class=n >keywords</span> <span class=o >=</span> <span class=p >{</span><span class=s2 >"function"</span><span class=p >:</span> <span class=n >function</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >}</span>
-        <span class=k >return</span> <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__new__</span><span class=p >(</span><span class=bp >cls</span><span class=p >,</span> <span class=n >magic_class</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >)</span>  <span class=c1 ># type: ignore</span>
-
-    <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
-        <span class=sd >"""Return string repr."""</span>
-        <span class=n >params</span> <span class=o >=</span> <span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >magicgui</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span>
-        <span class=n >args</span> <span class=o >=</span> <span class=p >[</span>
-            <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >k</span><span class=si >}</span><span class=s2 >=</span><span class=si >{</span><span class=n >v</span><span class=si >!r}</span><span class=s2 >"</span>
-            <span class=k >for</span> <span class=p >(</span><span class=n >k</span><span class=p >,</span> <span class=n >v</span><span class=p >)</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >items</span><span class=p >()</span>
-            <span class=k >if</span> <span class=n >v</span> <span class=ow >not</span> <span class=ow >in</span> <span class=p >(</span><span class=n >params</span><span class=p >[</span><span class=n >k</span><span class=p >]</span><span class=o >.</span><span class=n >default</span><span class=p >,</span> <span class=p >{})</span>
-        <span class=p >]</span>
-        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"MagicFactory(</span><span class=si >{</span><span class=s1 >', '</span><span class=o >.</span><span class=n >join</span><span class=p >(</span><span class=n >args</span><span class=p >)</span><span class=si >}</span><span class=s2 >)"</span>
-
-    <span class=k >def</span> <span class=fm >__call__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >_T</span><span class=p >:</span>
-        <span class=sd >"""Call the wrapped _magicgui and return a FunctionGui."""</span>
-        <span class=k >if</span> <span class=n >args</span><span class=p >:</span>
-            <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span><span class=s2 >"MagicFactory instance only accept keyword arguments"</span><span class=p >)</span>
-        <span class=n >params</span> <span class=o >=</span> <span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >magicgui</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span>
-        <span class=n >prm_options</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=s2 >"param_options"</span><span class=p >,</span> <span class=p >{})</span>
-        <span class=n >prm_options</span><span class=o >.</span><span class=n >update</span><span class=p >({</span><span class=n >k</span><span class=p >:</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >k</span><span class=p >)</span> <span class=k >for</span> <span class=n >k</span> <span class=ow >in</span> <span class=nb >list</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=k >if</span> <span class=n >k</span> <span class=ow >not</span> <span class=ow >in</span> <span class=n >params</span><span class=p >})</span>
-        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >func</span><span class=p >(</span><span class=n >param_options</span><span class=o >=</span><span class=n >prm_options</span><span class=p >,</span> <span class=o >**</span><span class=p >{</span><span class=o >**</span><span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >})</span>
-
-    <span class=k >def</span> <span class=fm >__getattr__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >name</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Any</span><span class=p >:</span>
-        <span class=sd >"""Allow accessing FunctionGui attributes without mypy error."""</span>
-        <span class=k >pass</span>  <span class=c1 ># pragma: no cover</span>
-
-    <span class=nd >@property</span>
-    <span class=k >def</span> <span class=nf >__name__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
-        <span class=sd >"""Pass function name."""</span>
-        <span class=k >return</span> <span class=nb >getattr</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=s2 >"function"</span><span class=p >),</span> <span class=s2 >"__name__"</span><span class=p >,</span> <span class=s2 >"FunctionGui"</span><span class=p >)</span>
-
-
-<span class=c1 ># Overloads for magic_factory decorator.  See implementation below</span>
-<span class=c1 ># TODO: figure out how to get these in a stub file.</span>
-<span class=c1 ># My first attempts to put them in ``_magicgui.pyi`` broke my type hints in VSCode</span>
-<span class=c1 ># fmt: off</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magic_factory</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >],</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >False</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >MagicFactory</span><span class=p >[</span><span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magic_factory</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >None</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >False</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Callable</span><span class=p >[[</span><span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >]],</span> <span class=n >MagicFactory</span><span class=p >[</span><span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magic_factory</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >],</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >True</span><span class=p >],</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >MagicFactory</span><span class=p >[</span><span class=n >MainFunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]:</span> <span class=o >...</span>
-<span class=nd >@overload</span>  <span class=c1 ># noqa: E302</span>
-<span class=k >def</span> <span class=nf >magic_factory</span><span class=p >(</span>  <span class=c1 ># noqa</span>
-    <span class=n >function</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >None</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
-    <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
-    <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >auto_call</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >result_widget</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
-    <span class=n >main_window</span><span class=p >:</span> <span class=n >Literal</span><span class=p >[</span><span class=kc >True</span><span class=p >],</span>
-    <span class=n >app</span><span class=p >:</span> <span class=n >AppRef</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
-    <span class=o >**</span><span class=n >param_options</span><span class=p >:</span> <span class=nb >dict</span><span class=p >,</span>
-<span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Callable</span><span class=p >[[</span><span class=n >Callable</span><span class=p >[</span><span class=o >...</span><span class=p >,</span> <span class=n >_R</span><span class=p >]],</span> <span class=n >MagicFactory</span><span class=p >[</span><span class=n >MainFunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >]]]:</span> <span class=o >...</span>
-<span class=c1 ># fmt: on</span>
-
-
 <span class=k >def</span> <span class=nf >magic_factory</span><span class=p >(</span>
     <span class=n >function</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >Callable</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span><span class=p >,</span>
     <span class=o >*</span><span class=p >,</span>
-    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"horizontal"</span><span class=p >,</span>
+    <span class=n >layout</span><span class=p >:</span> <span class=nb >str</span> <span class=o >=</span> <span class=s2 >"vertical"</span><span class=p >,</span>
     <span class=n >labels</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
     <span class=n >tooltips</span><span class=p >:</span> <span class=nb >bool</span> <span class=o >=</span> <span class=kc >True</span><span class=p >,</span>
     <span class=n >call_button</span><span class=p >:</span> <span class=n >Union</span><span class=p >[</span><span class=nb >bool</span><span class=p >,</span> <span class=nb >str</span><span class=p >]</span> <span class=o >=</span> <span class=kc >False</span><span class=p >,</span>
@@ -365,4 +125,88 @@
 <span class=p >)</span>
 
 <span class=n >magic_factory</span><span class=o >.</span><span class=vm >__doc__</span> <span class=o >+=</span> <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >    Parameters"</span> <span class=o >+</span> <span class=n >_factory_doc</span><span class=o >.</span><span class=n >split</span><span class=p >(</span><span class=s2 >"Parameters"</span><span class=p >)[</span><span class=mi >1</span><span class=p >]</span>  <span class=c1 ># type: ignore  # noqa</span>
+
+
+<span class=k >class</span> <span class=nc >MagicFactory</span><span class=p >(</span><span class=n >partial</span><span class=p >):</span>
+    <span class=sd >"""Factory function that returns a FunctionGui instance.</span>
+
+<span class=sd >    While this can be used directly, (see example below) the preferred usage is</span>
+<span class=sd >    via the :func:`magic_factory` decorator.</span>
+
+<span class=sd >    Examples</span>
+<span class=sd >    --------</span>
+<span class=sd >    &gt;&gt;&gt; def func(x: int, y: str):</span>
+<span class=sd >    ...     pass</span>
+<span class=sd >    ...</span>
+<span class=sd >    &gt;&gt;&gt; factory = MagicFactory(function=func, labels=False)</span>
+<span class=sd >    &gt;&gt;&gt; # factory accepts all the same arguments as magicgui()</span>
+<span class=sd >    &gt;&gt;&gt; widget1 = factory(call_button=True)</span>
+<span class=sd >    &gt;&gt;&gt; # can also override magic_kwargs that were provided when creating the factory</span>
+<span class=sd >    &gt;&gt;&gt; widget2 = factory(auto_call=True, labels=True)</span>
+<span class=sd >    """</span>
+
+    <span class=k >def</span> <span class=fm >__new__</span><span class=p >(</span><span class=bp >cls</span><span class=p >,</span> <span class=n >function</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=n >magic_class</span><span class=o >=</span><span class=n >FunctionGui</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >):</span>
+        <span class=sd >"""Create new MagicFactory."""</span>
+        <span class=k >if</span> <span class=ow >not</span> <span class=n >function</span><span class=p >:</span>
+            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span>
+                <span class=s2 >"MagicFactory missing required positional argument 'function'"</span>
+            <span class=p >)</span>
+
+        <span class=c1 ># we want function first for the repr</span>
+        <span class=n >keywords</span> <span class=o >=</span> <span class=p >{</span><span class=s2 >"function"</span><span class=p >:</span> <span class=n >function</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >}</span>
+        <span class=k >return</span> <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__new__</span><span class=p >(</span><span class=bp >cls</span><span class=p >,</span> <span class=n >magic_class</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >keywords</span><span class=p >)</span>  <span class=c1 ># type: ignore</span>
+
+    <span class=k >def</span> <span class=fm >__repr__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Return string repr."""</span>
+        <span class=n >params</span> <span class=o >=</span> <span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >magicgui</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span>
+        <span class=n >args</span> <span class=o >=</span> <span class=p >[</span>
+            <span class=sa >f</span><span class=s2 >"</span><span class=si >{</span><span class=n >k</span><span class=si >}</span><span class=s2 >=</span><span class=si >{</span><span class=n >v</span><span class=si >!r}</span><span class=s2 >"</span>
+            <span class=k >for</span> <span class=p >(</span><span class=n >k</span><span class=p >,</span> <span class=n >v</span><span class=p >)</span> <span class=ow >in</span> <span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >items</span><span class=p >()</span>
+            <span class=k >if</span> <span class=n >v</span> <span class=ow >not</span> <span class=ow >in</span> <span class=p >(</span><span class=n >params</span><span class=p >[</span><span class=n >k</span><span class=p >]</span><span class=o >.</span><span class=n >default</span><span class=p >,</span> <span class=p >{})</span>
+        <span class=p >]</span>
+        <span class=k >return</span> <span class=sa >f</span><span class=s2 >"MagicFactory(</span><span class=si >{</span><span class=s1 >', '</span><span class=o >.</span><span class=n >join</span><span class=p >(</span><span class=n >args</span><span class=p >)</span><span class=si >}</span><span class=s2 >)"</span>
+
+    <span class=k >def</span> <span class=fm >__call__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=o >*</span><span class=n >args</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+        <span class=sd >"""Call the wrapped _magicgui and return a FunctionGui."""</span>
+        <span class=k >if</span> <span class=n >args</span><span class=p >:</span>
+            <span class=k >raise</span> <span class=ne >ValueError</span><span class=p >(</span><span class=s2 >"MagicFactory instance only accept keyword arguments"</span><span class=p >)</span>
+        <span class=n >params</span> <span class=o >=</span> <span class=n >inspect</span><span class=o >.</span><span class=n >signature</span><span class=p >(</span><span class=n >magicgui</span><span class=p >)</span><span class=o >.</span><span class=n >parameters</span>
+        <span class=n >prm_options</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=s2 >"param_options"</span><span class=p >,</span> <span class=p >{})</span>
+        <span class=n >prm_options</span><span class=o >.</span><span class=n >update</span><span class=p >({</span><span class=n >k</span><span class=p >:</span> <span class=n >kwargs</span><span class=o >.</span><span class=n >pop</span><span class=p >(</span><span class=n >k</span><span class=p >)</span> <span class=k >for</span> <span class=n >k</span> <span class=ow >in</span> <span class=nb >list</span><span class=p >(</span><span class=n >kwargs</span><span class=p >)</span> <span class=k >if</span> <span class=n >k</span> <span class=ow >not</span> <span class=ow >in</span> <span class=n >params</span><span class=p >})</span>
+        <span class=k >return</span> <span class=bp >self</span><span class=o >.</span><span class=n >func</span><span class=p >(</span><span class=n >param_options</span><span class=o >=</span><span class=n >prm_options</span><span class=p >,</span> <span class=o >**</span><span class=p >{</span><span class=o >**</span><span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >})</span>
+
+    <span class=k >def</span> <span class=fm >__getattr__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >name</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Any</span><span class=p >:</span>
+        <span class=sd >"""Allow accessing FunctionGui attributes without mypy error."""</span>
+        <span class=k >pass</span>  <span class=c1 ># pragma: no cover</span>
+
+    <span class=nd >@property</span>
+    <span class=k >def</span> <span class=nf >__name__</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=nb >str</span><span class=p >:</span>
+        <span class=sd >"""Pass function name."""</span>
+        <span class=k >return</span> <span class=nb >getattr</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >keywords</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=s2 >"function"</span><span class=p >),</span> <span class=s2 >"__name__"</span><span class=p >,</span> <span class=s2 >"FunctionGui"</span><span class=p >)</span>
+
+
+<span class=k >def</span> <span class=nf >_magicgui</span><span class=p >(</span><span class=n >function</span><span class=o >=</span><span class=kc >None</span><span class=p >,</span> <span class=n >factory</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span> <span class=n >main_window</span><span class=o >=</span><span class=kc >False</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >):</span>
+    <span class=sd >"""Actual private magicui decorator.</span>
+
+<span class=sd >    if factory is `True` will return a MagicFactory instance, that can be called</span>
+<span class=sd >    to return a `FunctionGui` instance.  See docstring of ``magicgui`` for parameters.</span>
+<span class=sd >    Otherwise, this will return a FunctionGui instance directly.</span>
+<span class=sd >    """</span>
+
+    <span class=k >def</span> <span class=nf >inner_func</span><span class=p >(</span><span class=n >func</span><span class=p >:</span> <span class=n >Callable</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=n >Union</span><span class=p >[</span><span class=n >FunctionGui</span><span class=p >,</span> <span class=n >MagicFactory</span><span class=p >]:</span>
+        <span class=k >if</span> <span class=ow >not</span> <span class=n >callable</span><span class=p >(</span><span class=n >func</span><span class=p >):</span>
+            <span class=k >raise</span> <span class=ne >TypeError</span><span class=p >(</span><span class=s2 >"the first argument must be callable"</span><span class=p >)</span>
+
+        <span class=n >magic_class</span> <span class=o >=</span> <span class=n >MainFunctionGui</span> <span class=k >if</span> <span class=n >main_window</span> <span class=k >else</span> <span class=n >FunctionGui</span>
+
+        <span class=k >if</span> <span class=n >factory</span><span class=p >:</span>
+            <span class=k >return</span> <span class=n >MagicFactory</span><span class=p >(</span><span class=n >func</span><span class=p >,</span> <span class=n >magic_class</span><span class=o >=</span><span class=n >magic_class</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
+        <span class=c1 ># MagicFactory is unnecessary if we are immediately instantiating the widget,</span>
+        <span class=c1 ># so we shortcut that and just return the FunctionGui here.</span>
+        <span class=k >return</span> <span class=n >magic_class</span><span class=p >(</span><span class=n >func</span><span class=p >,</span> <span class=o >**</span><span class=n >kwargs</span><span class=p >)</span>
+
+    <span class=k >if</span> <span class=n >function</span> <span class=ow >is</span> <span class=kc >None</span><span class=p >:</span>
+        <span class=k >return</span> <span class=n >inner_func</span>
+    <span class=k >else</span><span class=p >:</span>
+        <span class=k >return</span> <span class=n >inner_func</span><span class=p >(</span><span class=n >function</span><span class=p >)</span>
 </pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.3. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>

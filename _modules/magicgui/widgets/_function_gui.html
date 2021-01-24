@@ -412,21 +412,39 @@
 <span class=sd >    """</span>
     <span class=n >function</span> <span class=o >=</span> <span class=n >function_gui</span><span class=o >.</span><span class=n >_function</span>
     <span class=k >if</span> <span class=ow >not</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >function</span><span class=p >,</span> <span class=n >FunctionType</span><span class=p >):</span>
+        <span class=c1 ># it's not a function object, so we don't know how to patch it...</span>
         <span class=k >yield</span>
         <span class=k >return</span>
 
     <span class=n >func_name</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__name__</span>
-    <span class=c1 ># function.__globals__ here points to the module-level globals in which the function</span>
-    <span class=c1 ># was defined.  This means that this will NOT work for factories defined inside</span>
-    <span class=c1 ># other functions.  we use `_UNSET` just in case the function name has somehow been</span>
-    <span class=c1 ># deleted or does not exist in the function module's globals()</span>
-    <span class=n >original_value</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=n >func_name</span><span class=p >,</span> <span class=n >_UNSET</span><span class=p >)</span>
-    <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span> <span class=o >=</span> <span class=n >function_gui</span>
-    <span class=k >try</span><span class=p >:</span>
-        <span class=k >yield</span>
-    <span class=k >finally</span><span class=p >:</span>
-        <span class=k >if</span> <span class=n >original_value</span> <span class=ow >is</span> <span class=n >_UNSET</span><span class=p >:</span>
-            <span class=k >del</span> <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span>
-        <span class=k >else</span><span class=p >:</span>
+    <span class=c1 ># see https://docs.python.org/3/library/inspect.html for details on code objects</span>
+    <span class=n >code</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__code__</span>
+
+    <span class=k >if</span> <span class=n >func_name</span> <span class=ow >in</span> <span class=n >code</span><span class=o >.</span><span class=n >co_names</span><span class=p >:</span>
+        <span class=c1 ># This indicates that the function name was used inside the body of the</span>
+        <span class=c1 ># function, and points to some object in the module's global namespace.</span>
+        <span class=c1 ># function.__globals__ here points to the module-level globals in which the</span>
+        <span class=c1 ># function was defined.</span>
+        <span class=n >original_value</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=o >.</span><span class=n >get</span><span class=p >(</span><span class=n >func_name</span><span class=p >)</span>
+        <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span> <span class=o >=</span> <span class=n >function_gui</span>
+        <span class=k >try</span><span class=p >:</span>
+            <span class=k >yield</span>
+        <span class=k >finally</span><span class=p >:</span>
             <span class=n >function</span><span class=o >.</span><span class=vm >__globals__</span><span class=p >[</span><span class=n >func_name</span><span class=p >]</span> <span class=o >=</span> <span class=n >original_value</span>
+
+    <span class=k >elif</span> <span class=n >function</span><span class=o >.</span><span class=vm >__closure__</span> <span class=ow >and</span> <span class=n >func_name</span> <span class=ow >in</span> <span class=n >code</span><span class=o >.</span><span class=n >co_freevars</span><span class=p >:</span>
+        <span class=c1 ># This indicates that the function name was used inside the body of the</span>
+        <span class=c1 ># function, and points to some object defined in a local scope (closure), rather</span>
+        <span class=c1 ># than the module's global namespace.</span>
+        <span class=c1 ># the position of the function name in code.co_freevars tells us where to look</span>
+        <span class=c1 ># for the value in the function.__closure__ tuple.</span>
+        <span class=n >idx</span> <span class=o >=</span> <span class=n >code</span><span class=o >.</span><span class=n >co_freevars</span><span class=o >.</span><span class=n >index</span><span class=p >(</span><span class=n >func_name</span><span class=p >)</span>
+        <span class=n >original_value</span> <span class=o >=</span> <span class=n >function</span><span class=o >.</span><span class=vm >__closure__</span><span class=p >[</span><span class=n >idx</span><span class=p >]</span><span class=o >.</span><span class=n >cell_contents</span>
+        <span class=n >function</span><span class=o >.</span><span class=vm >__closure__</span><span class=p >[</span><span class=n >idx</span><span class=p >]</span><span class=o >.</span><span class=n >cell_contents</span> <span class=o >=</span> <span class=n >function_gui</span>
+        <span class=k >try</span><span class=p >:</span>
+            <span class=k >yield</span>
+        <span class=k >finally</span><span class=p >:</span>
+            <span class=n >function</span><span class=o >.</span><span class=vm >__closure__</span><span class=p >[</span><span class=n >idx</span><span class=p >]</span><span class=o >.</span><span class=n >cell_contents</span> <span class=o >=</span> <span class=n >original_value</span>
+    <span class=k >else</span><span class=p >:</span>
+        <span class=k >yield</span>
 </pre></div> </article> </div> </div> </main> </div> <footer class=md-footer > <div class=md-footer-nav > <nav class="md-footer-nav__inner md-grid"> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-footer-copyright > <div class=md-footer-copyright__highlight > &#169; Copyright 2020. </div> Created using <a href="http://www.sphinx-doc.org/">Sphinx</a> 3.4.3. and <a href="https://jupyterbook.org/index.html">Jupyter Book</a> and <a href="https://github.com/bashtage/sphinx-material/">Material for Sphinx</a> </div> </div> </div> </footer> <script src="../../../_static/javascripts/application.js"></script> <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
