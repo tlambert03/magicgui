@@ -13,9 +13,6 @@
    .. autosummary::
    
       
-      ~FunctionGui.Gui
-      
-      
       
       ~FunctionGui.append
       
@@ -48,9 +45,6 @@
       
       
       ~FunctionGui.pop
-      
-      
-      ~FunctionGui.refresh_choices
       
       
       ~FunctionGui.remove

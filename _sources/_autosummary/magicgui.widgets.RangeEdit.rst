@@ -44,9 +44,6 @@
       ~RangeEdit.pop
       
       
-      ~RangeEdit.refresh_choices
-      
-      
       ~RangeEdit.remove
       
       

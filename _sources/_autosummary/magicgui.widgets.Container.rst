@@ -44,9 +44,6 @@
       ~Container.pop
       
       
-      ~Container.refresh_choices
-      
-      
       ~Container.remove
       
       

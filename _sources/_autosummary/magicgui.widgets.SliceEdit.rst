@@ -44,9 +44,6 @@
       ~SliceEdit.pop
       
       
-      ~SliceEdit.refresh_choices
-      
-      
       ~SliceEdit.remove
       
       

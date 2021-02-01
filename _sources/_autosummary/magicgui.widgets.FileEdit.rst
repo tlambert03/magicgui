@@ -44,9 +44,6 @@
       ~FileEdit.pop
       
       
-      ~FileEdit.refresh_choices
-      
-      
       ~FileEdit.remove
       
       

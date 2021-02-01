@@ -44,9 +44,6 @@
       ~ContainerWidget.pop
       
       
-      ~ContainerWidget.refresh_choices
-      
-      
       ~ContainerWidget.remove
       
       

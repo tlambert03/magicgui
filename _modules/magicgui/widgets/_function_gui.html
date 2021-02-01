@@ -7,7 +7,6 @@
 
 <span class=kn >import</span> <span class=nn >inspect</span>
 <span class=kn >import</span> <span class=nn >re</span>
-<span class=kn >import</span> <span class=nn >warnings</span>
 <span class=kn >from</span> <span class=nn >collections</span> <span class=kn >import</span> <span class=n >deque</span>
 <span class=kn >from</span> <span class=nn >contextlib</span> <span class=kn >import</span> <span class=n >contextmanager</span>
 <span class=kn >from</span> <span class=nn >types</span> <span class=kn >import</span> <span class=n >FunctionType</span>
@@ -21,6 +20,7 @@
     <span class=n >Optional</span><span class=p >,</span>
     <span class=n >TypeVar</span><span class=p >,</span>
     <span class=n >Union</span><span class=p >,</span>
+    <span class=n >cast</span><span class=p >,</span>
 <span class=p >)</span>
 
 <span class=kn >from</span> <span class=nn >magicgui.application</span> <span class=kn >import</span> <span class=n >AppRef</span>
@@ -177,7 +177,19 @@
             <span class=n >text</span> <span class=o >=</span> <span class=n >call_button</span> <span class=k >if</span> <span class=nb >isinstance</span><span class=p >(</span><span class=n >call_button</span><span class=p >,</span> <span class=nb >str</span><span class=p >)</span> <span class=k >else</span> <span class=s2 >"Run"</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span> <span class=o >=</span> <span class=n >PushButton</span><span class=p >(</span><span class=n >gui_only</span><span class=o >=</span><span class=kc >True</span><span class=p >,</span> <span class=n >text</span><span class=o >=</span><span class=n >text</span><span class=p >,</span> <span class=n >name</span><span class=o >=</span><span class=s2 >"call_button"</span><span class=p >)</span>
             <span class=k >if</span> <span class=ow >not</span> <span class=n >auto_call</span><span class=p >:</span>  <span class=c1 ># (otherwise it already gets called)</span>
-                <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >connect</span><span class=p >(</span><span class=k >lambda</span> <span class=n >e</span><span class=p >:</span> <span class=bp >self</span><span class=o >.</span><span class=fm >__call__</span><span class=p >())</span>
+
+                <span class=k >def</span> <span class=nf >_disable_button_and_call</span><span class=p >(</span><span class=n >val</span><span class=p >):</span>
+                    <span class=c1 ># disable the call button until the function has finished</span>
+                    <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span> <span class=o >=</span> <span class=n >cast</span><span class=p >(</span><span class=n >PushButton</span><span class=p >,</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >)</span>
+                    <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >enabled</span> <span class=o >=</span> <span class=kc >False</span>
+                    <span class=n >t</span><span class=p >,</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >text</span> <span class=o >=</span> <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >text</span><span class=p >,</span> <span class=s2 >"Running..."</span>
+                    <span class=k >try</span><span class=p >:</span>
+                        <span class=bp >self</span><span class=o >.</span><span class=fm >__call__</span><span class=p >()</span>
+                    <span class=k >finally</span><span class=p >:</span>
+                        <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >text</span> <span class=o >=</span> <span class=n >t</span>
+                        <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >enabled</span> <span class=o >=</span> <span class=kc >True</span>
+
+                <span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=o >.</span><span class=n >changed</span><span class=o >.</span><span class=n >connect</span><span class=p >(</span><span class=n >_disable_button_and_call</span><span class=p >)</span>
             <span class=bp >self</span><span class=o >.</span><span class=n >append</span><span class=p >(</span><span class=bp >self</span><span class=o >.</span><span class=n >_call_button</span><span class=p >)</span>
 
         <span class=bp >self</span><span class=o >.</span><span class=n >_result_widget</span><span class=p >:</span> <span class=n >Optional</span><span class=p >[</span><span class=n >LineEdit</span><span class=p >]</span> <span class=o >=</span> <span class=kc >None</span>
@@ -198,18 +210,6 @@
     <span class=k >def</span> <span class=nf >reset_call_count</span><span class=p >(</span><span class=bp >self</span><span class=p >)</span> <span class=o >-&gt;</span> <span class=kc >None</span><span class=p >:</span>
         <span class=sd >"""Reset the call count to 0."""</span>
         <span class=bp >self</span><span class=o >.</span><span class=n >_call_count</span> <span class=o >=</span> <span class=mi >0</span>
-
-    <span class=k >def</span> <span class=fm >__getattr__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
-        <span class=sd >"""Catch deprecated _name_changed attribute."""</span>
-        <span class=k >if</span> <span class=n >value</span><span class=o >.</span><span class=n >endswith</span><span class=p >(</span><span class=s2 >"_changed"</span><span class=p >):</span>
-            <span class=n >widget_name</span> <span class=o >=</span> <span class=n >value</span><span class=o >.</span><span class=n >replace</span><span class=p >(</span><span class=s2 >"_changed"</span><span class=p >,</span> <span class=s2 >""</span><span class=p >)</span>
-            <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
-                <span class=s2 >"</span><span class=se >\n</span><span class=s2 >The `&lt;name&gt;_changed` signal has been removed in magicgui 0.2.0.</span><span class=se >\n</span><span class=s2 >"</span>
-                <span class=sa >f</span><span class=s2 >"Use 'widget.</span><span class=si >{</span><span class=n >widget_name</span><span class=si >}</span><span class=s2 >.changed' instead of 'widget.</span><span class=si >{</span><span class=n >value</span><span class=si >}</span><span class=s2 >'"</span><span class=p >,</span>
-                <span class=ne >FutureWarning</span><span class=p >,</span>
-            <span class=p >)</span>
-            <span class=k >return</span> <span class=nb >getattr</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >widget_name</span><span class=p >)</span><span class=o >.</span><span class=n >changed</span>
-        <span class=k >return</span> <span class=nb >super</span><span class=p >()</span><span class=o >.</span><span class=fm >__getattr__</span><span class=p >(</span><span class=n >value</span><span class=p >)</span>
 
     <span class=c1 ># def __delitem__(self, key: Union[int, slice]):</span>
     <span class=c1 >#     """Delete a widget by integer or slice index."""</span>
@@ -339,21 +339,7 @@
 
     <span class=k >def</span> <span class=fm >__set__</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >obj</span><span class=p >,</span> <span class=n >value</span><span class=p >):</span>
         <span class=sd >"""Prevent setting a magicgui attribute."""</span>
-        <span class=k >raise</span> <span class=ne >AttributeError</span><span class=p >(</span><span class=s2 >"Can't set magicgui attribute"</span><span class=p >)</span>
-
-    <span class=k >def</span> <span class=nf >Gui</span><span class=p >(</span><span class=bp >self</span><span class=p >,</span> <span class=n >show</span><span class=o >=</span><span class=kc >False</span><span class=p >):</span>
-        <span class=sd >"""Create a widget instance [DEPRECATED]."""</span>
-        <span class=n >warnings</span><span class=o >.</span><span class=n >warn</span><span class=p >(</span>
-            <span class=s2 >"</span><span class=se >\n\n</span><span class=s2 >Creating a widget instance with `my_function.Gui()` is deprecated,</span><span class=se >\n</span><span class=s2 >"</span>
-            <span class=s2 >"the magicgui decorator now returns a widget instance directly, so you</span><span class=se >\n</span><span class=s2 >"</span>
-            <span class=s2 >"should simply use the function itself as a magicgui widget, or call</span><span class=se >\n</span><span class=s2 >"</span>
-            <span class=s2 >"`my_function.show(run=True)` to run the application.</span><span class=se >\n</span><span class=s2 >"</span>
-            <span class=s2 >"In a future version, the `Gui` attribute will be removed.</span><span class=se >\n</span><span class=s2 >"</span><span class=p >,</span>
-            <span class=ne >FutureWarning</span><span class=p >,</span>
-        <span class=p >)</span>
-        <span class=k >if</span> <span class=n >show</span><span class=p >:</span>
-            <span class=bp >self</span><span class=o >.</span><span class=n >show</span><span class=p >()</span>
-        <span class=k >return</span> <span class=bp >self</span></div>
+        <span class=k >raise</span> <span class=ne >AttributeError</span><span class=p >(</span><span class=s2 >"Can't set magicgui attribute"</span><span class=p >)</span></div>
 
 
 <span class=k >class</span> <span class=nc >MainFunctionGui</span><span class=p >(</span><span class=n >FunctionGui</span><span class=p >[</span><span class=n >_R</span><span class=p >],</span> <span class=n >MainWindow</span><span class=p >):</span>
