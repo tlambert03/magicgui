@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import inspect
+from abc import ABC, abstractmethod
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Dict,
     ForwardRef,
     List,
     MutableSequence,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Union,
     overload,
@@ -29,7 +32,7 @@ if TYPE_CHECKING:
     from magicgui.widgets import Container
 
 
-class ContainerWidget(Widget, _OrientationMixin, MutableSequence[Widget]):
+class ContainerWidget(Widget):
     """Widget that can contain other widgets.
 
     Wraps a widget that implements
@@ -80,18 +83,25 @@ class ContainerWidget(Widget, _OrientationMixin, MutableSequence[Widget]):
         return_annotation: Any = None,
         **kwargs,
     ):
-        self._list: List[Widget] = []
+        self._children: Dict[Widget, None] = {}
         self._return_annotation = None
         self._labels = labels
-        self._layout = layout
-        kwargs["backend_kwargs"] = {"layout": layout}
+        self.layout = layout
         super().__init__(**kwargs)
         self.changed = EventEmitter(source=self, type="changed")
         self.return_annotation = return_annotation
         self.extend(widgets)
         self.parent_changed.connect(self.reset_choices)
-        self._initialized = True
-        self._unify_label_widths()
+
+    @property
+    def layout(self):
+        return self._layout
+
+    @layout.setter
+    def layout(self, value):
+        if value == "vertical":
+            layout = VBoxLayout()
+        self._layout = layout
 
     @property
     def return_annotation(self):
@@ -188,6 +198,7 @@ class ContainerWidget(Widget, _OrientationMixin, MutableSequence[Widget]):
 
     def insert(self, key: int, widget: Widget):
         """Insert widget at ``key``."""
+        self._list.insert(key, widget)
         if isinstance(widget, ValueWidget):
             widget.changed.connect(lambda x: self.changed(value=self))
         _widget = widget
@@ -200,7 +211,6 @@ class ContainerWidget(Widget, _OrientationMixin, MutableSequence[Widget]):
                 _widget = _LabeledWidget(widget)
                 widget.label_changed.connect(self._unify_label_widths)
 
-        self._list.insert(key, widget)
         if key < 0:
             key += len(self)
         # NOTE: if someone has manually mucked around with self.native.layout()

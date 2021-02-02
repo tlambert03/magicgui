@@ -291,6 +291,64 @@ class RadioButton(QBaseButtonWidget):
 #         super().__init__(QtW.QToolButton)
 
 
+class _Layout:
+    _qlayout: QtW.QLayout
+
+    def __init__(self, qlayout):
+        self._qlayout = qlayout()
+
+    def _mgui_remove_widget(self, widget: Widget):
+        self._qlayout.removeWidget(widget.native)
+        widget.native.setParent(None)
+
+    def _mgui_get_margins(self) -> Tuple[int, int, int, int]:
+        m = self._qlayout.contentsMargins()
+        return m.left(), m.top(), m.right(), m.bottom()
+
+    def _mgui_set_margins(self, margins: Tuple[int, int, int, int]) -> None:
+        self._qlayout.setContentsMargins(*margins)
+
+    def _mgui_get_native_layout(self) -> QtW.QLayout:
+        return self._qlayout
+
+
+class _BoxLayout(_Layout):
+    _qlayout: QtW.QBoxLayout
+
+    def _mgui_insert_widget(self, position: int, widget: Widget):
+        self._qlayout.insertWidget(position, widget.native)
+
+
+class HBoxLayout(_BoxLayout):
+    def __init__(self):
+        super().__init__(QtW.QHBoxLayout)
+
+
+class VBoxLayout(_BoxLayout):
+    def __init__(self):
+        super().__init__(QtW.QVBoxLayout)
+
+
+class GridLayout(_Layout):
+    _qlayout: QtW.QGridLayout
+
+    def __init__(self):
+        super().__init__(QtW.QGridLayout)
+
+    def _mgui_add_widget(
+        self,
+        widget: Widget,
+        from_row: int,
+        from_col: int,
+        row_span: int = 1,
+        col_span: int = 1,
+    ):
+        # If rowSpan and/or columnSpan is -1, then the widget will extend to the
+        # bottom and/or right edge, respectively.
+        # Note: this also accepts a https://doc.qt.io/qt-5/qt.html#AlignmentFlag-enum
+        self._qlayout.addWidget(widget.native, from_row, from_col, row_span, col_span)
+
+
 class Container(
     QBaseWidget, _protocols.ContainerProtocol, _protocols.SupportsOrientation
 ):

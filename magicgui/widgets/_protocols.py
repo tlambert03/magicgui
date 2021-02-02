@@ -425,18 +425,15 @@ class SliderWidgetProtocol(RangedWidgetProtocol, SupportsOrientation, Protocol):
     """Protocol for implementing a slider widget."""
 
 
-# CONTAINER ----------------------------------------------------------------------
+# LAYOUT ----------------------------------------------------------------------
 
 
-class ContainerProtocol(WidgetProtocol, SupportsOrientation, Protocol):
-    """Widget that can contain other widgets."""
-
-    @abstractmethod
-    def _mgui_insert_widget(self, position: int, widget: "Widget") -> None:
-        raise NotImplementedError()
+class LayoutProtocol(Protocol):
+    def __init__(self, **kwargs):
+        pass
 
     @abstractmethod
-    def _mgui_remove_widget(self, widget: "Widget") -> None:
+    def _mgui_remove_widget(self, widget: Widget):
         raise NotImplementedError()
 
     @abstractmethod
@@ -446,6 +443,40 @@ class ContainerProtocol(WidgetProtocol, SupportsOrientation, Protocol):
     @abstractmethod
     def _mgui_set_margins(self, margins: Tuple[int, int, int, int]) -> None:
         raise NotImplementedError()
+
+    @abstractmethod
+    def _mgui_get_native_layout(self) -> Any:
+        raise NotImplementedError()
+
+
+class BoxLayoutProtocol(LayoutProtocol, Protocol):
+    @abstractmethod
+    def _mgui_insert_widget(self, position: int, widget: Widget):
+        raise NotImplementedError()
+
+
+class GridLayoutProtocol(LayoutProtocol, Protocol):
+    @abstractmethod
+    def _mgui_add_widget(
+        self,
+        widget: Widget,
+        from_row: int,
+        from_col: int,
+        row_span: int = 1,
+        col_span: int = 1,
+    ):
+        raise NotImplementedError()
+
+
+# CONTAINER ----------------------------------------------------------------------
+
+
+class ContainerProtocol(WidgetProtocol, SupportsOrientation, Protocol):
+    """Widget that can contain other widgets."""
+
+    @abstractmethod
+    def _mgui_set_layout(self, layout: LayoutProtocol):
+        pass
 
 
 class MainWindowProtocol(ContainerProtocol, Protocol):
