@@ -1,15 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ForwardRef,
-    MutableSequence,
-    Sequence,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, MutableSequence, Sequence, overload
 
 from magicgui.application import use_app
 from magicgui.events import EventEmitter
@@ -58,9 +50,6 @@ class ContainerWidget(Widget):
         Whether each widget should be shown with a corresponding Label widget to the
         left, by default ``True``.  Note: the text for each widget defaults to
         ``widget.name``, but can be overriden by setting ``widget.label``.
-    return_annotation : type or str, optional
-        An optional return annotation to use when representing this container of
-        widgets as an :class:`inspect.Signature`, by default ``None``
     """
 
     changed: EventEmitter
@@ -72,16 +61,13 @@ class ContainerWidget(Widget):
         layout: str = "vertical",
         widgets: Sequence[Widget] = (),
         labels=True,
-        return_annotation: Any = None,
         **kwargs,
     ):
-        self._children: dict[Widget, None] = {}
-        self._return_annotation = None
+        self._list: list[Widget] = []
         self._labels = labels
         self.layout = layout
         super().__init__(**kwargs)
         self.changed = EventEmitter(source=self, type="changed")
-        self.return_annotation = return_annotation
         self.extend(widgets)
         self.parent_changed.connect(self.reset_choices)
 
@@ -94,22 +80,6 @@ class ContainerWidget(Widget):
         if value == "vertical":
             layout = VBoxLayout()
         self._layout = layout
-
-    @property
-    def return_annotation(self):
-        """Return annotation to use when converting to :class:`inspect.Signature`.
-
-        ForwardRefs will be resolve when setting the annotation.
-        """
-        return self._return_annotation
-
-    @return_annotation.setter
-    def return_annotation(self, value):
-        if isinstance(value, (str, ForwardRef)):
-            from magicgui.type_map import _evaluate_forwardref
-
-            value = _evaluate_forwardref(value)
-        self._return_annotation = value
 
     def __getattr__(self, name: str):
         """Return attribute ``name``.  Will return a widget if present."""
@@ -213,11 +183,11 @@ class ContainerWidget(Widget):
     def _unify_label_widths(self, event=None):
         if not self._initialized:
             return
-        if self.layout == "vertical" and self.labels and len(self):
+
+        need_labels = [w for w in self if not isinstance(w, ButtonWidget)]
+        if self.layout == "vertical" and self.labels and need_labels:
             measure = use_app().get_obj("get_text_width")
-            widest_label = max(
-                measure(w.label) for w in self if not isinstance(w, ButtonWidget)
-            )
+            widest_label = max(measure(w.label) for w in need_labels)
             for w in self:
                 labeled_widget = w._labeled_widget()
                 if labeled_widget:
@@ -271,7 +241,7 @@ class ContainerWidget(Widget):
             elif seen_default:
                 params.sort(key=lambda x: x.default is not MagicParameter.empty)
                 break
-        return MagicSignature(params, return_annotation=self.return_annotation)
+        return MagicSignature(params)
 
     @classmethod
     def from_signature(cls, sig: inspect.Signature, **kwargs) -> Container:
@@ -306,6 +276,34 @@ class ContainerWidget(Widget):
         for index, _ in enumerate(self):
             widget = self.pop(index)
             self.insert(index, widget)
+
+    NO_VALUE = "NO_VALUE"
+
+    def dict(self) -> dict:
+        """Return dict of {name: value} for each widget in the container."""
+        return {w.name: getattr(w, "value", self.NO_VALUE) for w in self}
+
+    def _dump(self, path):
+        """Dump the state of the widget to `path`."""
+        import pickle
+        from pathlib import Path
+
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(pickle.dumps(self.dict()))
+
+    def _load(self, path, quiet=False):
+        """Restore the state of the widget from previously saved file at `path`."""
+        import pickle
+        from pathlib import Path
+
+        path = Path(path)
+        if not path.exists() and quiet:
+            return
+        for key, val in pickle.loads(path.read_bytes()).items():
+            if val == self.NO_VALUE:
+                continue
+            getattr(self, key).value = val
 
 
 class MainWindowWidget(ContainerWidget):

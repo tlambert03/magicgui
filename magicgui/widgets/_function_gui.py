@@ -8,9 +8,20 @@ import inspect
 import re
 from collections import deque
 from contextlib import contextmanager
+from pathlib import Path
 from types import FunctionType
-from typing import TYPE_CHECKING, Any, Callable, Deque, Generic, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Deque,
+    ForwardRef,
+    Generic,
+    TypeVar,
+    cast,
+)
 
+from magicgui._util import rate_limited
 from magicgui.application import AppRef
 from magicgui.events import EventEmitter
 from magicgui.signature import MagicSignature, magic_signature
@@ -86,6 +97,10 @@ class FunctionGui(Container, Generic[_R]):
         Will be passed to `magic_signature` by default ``None``
     name : str, optional
         A name to assign to the Container widget, by default `function.__name__`
+    persist : bool, optional
+        If `True`, when parameter values change in the widget, they will be stored to
+        disk (in `~/.config/magicgui/cache`) and restored when the widget is loaded
+        again with ``persist = True``.  By default, `False`.
 
     Raises
     ------
@@ -94,7 +109,6 @@ class FunctionGui(Container, Generic[_R]):
     """
 
     _widget: ContainerProtocol
-    __signature__: MagicSignature
 
     def __init__(
         self,
@@ -109,6 +123,7 @@ class FunctionGui(Container, Generic[_R]):
         result_widget: bool = False,
         param_options: dict[str, dict] | None = None,
         name: str = None,
+        persist: bool = False,
         **kwargs,
     ):
         if not callable(function):
@@ -128,6 +143,7 @@ class FunctionGui(Container, Generic[_R]):
         if tooltips:
             _inject_tooltips_from_docstrings(function.__doc__, param_options)
 
+        self.persist = persist
         self._function = function
         self.__wrapped__ = function
         # it's conceivable that function is not actually an instance of FunctionType
@@ -141,15 +157,14 @@ class FunctionGui(Container, Generic[_R]):
         )
 
         sig = magic_signature(function, gui_options=param_options)
+        self.return_annotation = sig.return_annotation
         super().__init__(
             layout=layout,
             labels=labels,
             visible=visible,
             widgets=list(sig.widgets(app).values()),
-            return_annotation=sig.return_annotation,
             name=name or self._callable_name,
         )
-
         self._param_options = param_options
         self.called = EventEmitter(self, type="called")
         self._result_name = ""
@@ -186,9 +201,17 @@ class FunctionGui(Container, Generic[_R]):
             self._result_widget.enabled = False
             self.append(self._result_widget)
 
+        if persist:
+            self._load(quiet=True)
+
         self._auto_call = auto_call
-        if auto_call:
-            self.changed.connect(lambda e: self.__call__())
+        self.changed.connect(self._on_change)
+
+    def _on_change(self, e):
+        if self.persist:
+            self._dump()
+        if self._auto_call:
+            self()
 
     @property
     def call_count(self) -> int:
@@ -199,9 +222,26 @@ class FunctionGui(Container, Generic[_R]):
         """Reset the call count to 0."""
         self._call_count = 0
 
-    # def __delitem__(self, key: int | slice):
-    #     """Delete a widget by integer or slice index."""
-    #     raise AttributeError("can't delete items from a FunctionGui")
+    @property
+    def return_annotation(self):
+        """Return annotation to use when converting to :class:`inspect.Signature`.
+
+        ForwardRefs will be resolve when setting the annotation.
+        """
+        return self._return_annotation
+
+    @return_annotation.setter
+    def return_annotation(self, value):
+        if isinstance(value, (str, ForwardRef)):
+            from magicgui.type_map import _evaluate_forwardref
+
+            value = _evaluate_forwardref(value)
+        self._return_annotation = value
+
+    @property
+    def __signature__(self) -> MagicSignature:
+        """Return a MagicSignature object representing the current state of the gui."""
+        return super().__signature__.replace(return_annotation=self.return_annotation)
 
     def __call__(self, *args: Any, **kwargs: Any) -> _R:
         """Call the original function with the current parameter values from the Gui.
@@ -253,7 +293,7 @@ class FunctionGui(Container, Generic[_R]):
             with self._result_widget.changed.blocker():
                 self._result_widget.value = value
 
-        return_type = self.return_annotation
+        return_type = sig.return_annotation
         if return_type:
             from magicgui.type_map import _type2callback
 
@@ -328,6 +368,21 @@ class FunctionGui(Container, Generic[_R]):
     def __set__(self, obj, value):
         """Prevent setting a magicgui attribute."""
         raise AttributeError("Can't set magicgui attribute")
+
+    @property
+    def _dump_path(self) -> Path:
+        from .._util import user_cache_dir
+
+        name = getattr(self._function, "__qualname__", self._callable_name)
+        name = name.replace("<", "-").replace(">", "-")  # e.g. <locals>
+        return user_cache_dir() / f"{self._function.__module__}.{name}"
+
+    @rate_limited(0.25)
+    def _dump(self, path=None):
+        super()._dump(path or self._dump_path)
+
+    def _load(self, path=None, quiet=False):
+        super()._load(path or self._dump_path, quiet=quiet)
 
 
 class MainFunctionGui(FunctionGui[_R], MainWindow):
