@@ -1,7 +1,7 @@
 """Widget implementations (adaptors) for the Qt backend."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Sequence, Tuple
 
 import qtpy
 from qtpy import QtWidgets as QtW
@@ -328,7 +328,7 @@ class RadioButton(QBaseButtonWidget):
 #         super().__init__(QtW.QToolButton)
 
 
-class _Layout:
+class _Layout(_protocols.LayoutProtocol):
     _qlayout: QtW.QLayout
 
     def __init__(self, qlayout):
@@ -349,7 +349,7 @@ class _Layout:
         return self._qlayout
 
 
-class _BoxLayout(_Layout):
+class _BoxLayout(_Layout, _protocols.BoxLayoutProtocol):
     _qlayout: QtW.QBoxLayout
 
     def _mgui_insert_widget(self, position: int, widget: Widget):
@@ -366,7 +366,7 @@ class VBoxLayout(_BoxLayout):
         super().__init__(QtW.QVBoxLayout)
 
 
-class GridLayout(_Layout):
+class GridLayout(_Layout, _protocols.GridLayoutProtocol):
     _qlayout: QtW.QGridLayout
 
     def __init__(self):
@@ -396,6 +396,9 @@ class Container(
         else:
             self._layout = QtW.QVBoxLayout()
         self._qwidget.setLayout(self._layout)
+
+    def _mgui_set_layout(self, layout):
+        pass
 
     def _mgui_insert_widget(self, position: int, widget: Widget):
         self._layout.insertWidget(position, widget.native)

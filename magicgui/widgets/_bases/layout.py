@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from itertools import product
 from typing import (
     TYPE_CHECKING,
-    Any,
     Collection,
     Dict,
     List,
@@ -18,6 +17,7 @@ from typing import (
 
 from magicgui.application import use_app
 from magicgui.widgets import Widget
+from magicgui.events import EventEmitter
 
 from .._bases import ButtonWidget, ValueWidget
 
@@ -28,8 +28,8 @@ Index = Union[int, slice]
 Key = Tuple[Index, Index]
 
 
-class Layout(MutableSequence[Widget], ABC):
-    _layout: _protocols.BoxLayoutProtocol
+class _Layout(ABC):
+    _layout: _protocols.LayoutProtocol
     _initialized = False
 
     def __init__(
@@ -41,11 +41,9 @@ class Layout(MutableSequence[Widget], ABC):
         app = use_app()
         assert app.native
         self._layout = self._create_layout()
-        self._list: List[Widget] = []
         self._labels = labels
+        self.changed = EventEmitter(source=self, type="changed")
         self._initialized = True
-        self.extend(widgets)
-        self._unify_label_widths()
 
     @property
     def labels(self) -> bool:
@@ -58,9 +56,9 @@ class Layout(MutableSequence[Widget], ABC):
             return
         self._labels = value
 
-        for index, _ in enumerate(self):
-            widget = self.pop(index)
-            self.insert(index, widget)
+        # for index, _ in enumerate(self):
+        #     widget = self.pop(index)
+        #     self.insert(index, widget)
 
     @abstractmethod
     def _create_layout(self):
@@ -70,24 +68,49 @@ class Layout(MutableSequence[Widget], ABC):
     def native(self):
         return self._layout._mgui_get_native_layout()
 
-    def __getattr__(self, name: str):
-        """Return attribute ``name``.  Will return a widget if present."""
-        for widget in self:
-            if name == widget.name:
-                return widget
-        return object.__getattribute__(self, name)
+    @property
+    def margins(self) -> tuple[int, int, int, int]:
+        """Return margin between the content and edges of the container."""
+        return self._layout._mgui_get_margins()
 
-    def __setattr__(self, name: str, value: Any):
-        """Set attribute ``name``.  Prevents changing widget if present, (use del)."""
-        if self._initialized:
-            for widget in self:
-                if name == widget.name:
-                    raise AttributeError(
-                        "Cannot set attribute with same name as a widget\n"
-                        "If you are trying to change the value of a widget, use: "
-                        f"`{self.__class__.__name__}.{name}.value = {value}`",
-                    )
-        object.__setattr__(self, name, value)
+    @margins.setter
+    def margins(self, margins: tuple[int, int, int, int]) -> None:
+        # left, top, right, bottom
+        self._layout._mgui_set_margins(margins)
+
+    # def __getattr__(self, name: str):
+    #     """Return attribute ``name``.  Will return a widget if present."""
+    #     for widget in self:
+    #         if name == widget.name:
+    #             return widget
+    #     return object.__getattribute__(self, name)
+
+    # def __setattr__(self, name: str, value: Any):
+    #     """Set attribute ``name``.  Prevents changing widget if present, (use del)."""
+    #     if self._initialized:
+    #         for widget in self:
+    #             if name == widget.name:
+    #                 raise AttributeError(
+    #                     "Cannot set attribute with same name as a widget\n"
+    #                     "If you are trying to change the value of a widget, use: "
+    #                     f"`{self.__class__.__name__}.{name}.value = {value}`",
+    #                 )
+    #     object.__setattr__(self, name, value)
+
+
+class _BoxLayout(_Layout, MutableSequence[Widget]):
+    _layout: _protocols.BoxLayoutProtocol
+
+    def __init__(self, widgets: Sequence[Widget], labels=False, **kwargs):
+        super().__init__(widgets=widgets, labels=labels, **kwargs)
+        self._list: List[Widget] = []
+
+        self.extend(widgets)
+        self._unify_label_widths()
+
+    def __len__(self) -> int:
+        """Return the count of widgets."""
+        return len(self._list)
 
     @overload
     def __getitem__(self, key: Union[int, str]) -> Widget:  # noqa: D105
@@ -99,8 +122,8 @@ class Layout(MutableSequence[Widget], ABC):
 
     def __getitem__(self, key):  # noqa: F811
         """Get item by integer, str, or slice."""
-        if isinstance(key, str):
-            return self.__getattr__(key)
+        # if isinstance(key, str):
+        #     return self.__getattr__(key)
         if isinstance(key, slice):
             return [getattr(item, "_inner_widget", item) for item in self._list[key]]
         elif isinstance(key, int):
@@ -118,10 +141,6 @@ class Layout(MutableSequence[Widget], ABC):
         else:
             raise TypeError(f"list indices must be integers or slices, not {type(key)}")
         del self._list[key]
-
-    def __len__(self) -> int:
-        """Return the count of widgets."""
-        return len(self._list)
 
     def __setitem__(self, key, value):
         """Prevent assignment by index."""
@@ -156,13 +175,13 @@ class Layout(MutableSequence[Widget], ABC):
         pass
 
 
-class HBoxLayout(Layout):
+class HBoxLayout(_BoxLayout):
     def _create_layout(self):
         layout = use_app().get_obj("HBoxLayout")
         return layout()
 
 
-class VBoxLayout(Layout):
+class VBoxLayout(_BoxLayout):
     def _create_layout(self):
         layout = use_app().get_obj("VBoxLayout")
         return layout()
@@ -230,6 +249,7 @@ class GridLayout:
             raise TypeError("n_rows and n_columns must be positive integers")
         self._n_rows = n_rows
         self._n_columns = n_columns
+        #                    key,      (value,       (rows,       columns))
         self._children: Dict[str, Tuple[Widget, Tuple[Collection, Collection]]] = {}
         self.clear()
         if widgets:
