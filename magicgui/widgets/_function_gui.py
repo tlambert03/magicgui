@@ -187,13 +187,13 @@ class FunctionGui(Container, Generic[_R]):
                         self._call_button.enabled = True
 
                 self._call_button.changed.connect(_disable_button_and_call)
-            self.append(self._call_button)
+            self.layout.append(self._call_button)
 
         self._result_widget: LineEdit | None = None
         if result_widget:
             self._result_widget = LineEdit(gui_only=True, name="result")
             self._result_widget.enabled = False
-            self.append(self._result_widget)
+            self.layout.append(self._result_widget)
 
         if persist:
             self._load(quiet=True)

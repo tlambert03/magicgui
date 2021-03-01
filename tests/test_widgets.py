@@ -122,8 +122,8 @@ def test_basic_widget_attributes():
     assert widget.visible
 
     assert widget.parent is None
-    container.append(widget)
-    assert widget.parent is container.native
+    container.layout.append(widget)
+    # assert widget.parent is container.native
     widget.parent = None
     assert widget.parent is None
     assert widget.label == "my name"
@@ -164,7 +164,7 @@ def test_container_widget():
     container = widgets.Container(labels=False)
     labela = widgets.Label(value="hi", name="labela")
     labelb = widgets.Label(value="hi", name="labelb")
-    container.append(labela)
+    container.layout.append(labela)
     container.extend([labelb])
     # different ways to index
     assert container[0] == labela
@@ -204,9 +204,9 @@ def test_container_label_widths():
             if not isinstance(w, widgets._bases.ButtonWidget)
         )
 
-    container.append(labela)
+    container.layout.append(labela)
     before = _label_width()
-    container.append(labelb)
+    container.layout.append(labelb)
     assert _label_width() > before
 
 

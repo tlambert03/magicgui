@@ -37,7 +37,7 @@ def test_magicgui(magic_func):
     assert magic_func.visible
 
     a = magic_func.a  # save ref
-    assert magic_func.index(a) == 0
+    assert magic_func.layout.index(a) == 0
     # we can delete widgets
     del magic_func.a
     with pytest.raises(AttributeError):
@@ -45,7 +45,7 @@ def test_magicgui(magic_func):
 
     # they disappear from the layout
     with pytest.raises(ValueError):
-        magic_func.index(a)
+        magic_func.layout.index(a)
 
 
 def test_overriding_widget_type():
@@ -352,7 +352,7 @@ def test_add_at_position(labels):
 
     gui = magicgui(func, labels=labels)
     assert get_layout_items(gui) == ["a", "b", "c"]
-    gui.insert(1, widgets.create_widget(name="new"))
+    gui.layout.insert(1, widgets.create_widget(name="new"))
     assert get_layout_items(gui) == ["a", "new", "b", "c"]
 
 

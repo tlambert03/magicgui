@@ -1,22 +1,36 @@
 from magicgui import widgets
 from magicgui.widgets._bases.layout import GridLayout, HBoxLayout
-from magicgui.backends._qtpy.widgets import GridLayout as QGridLayout
 
 
-class C(widgets.EmptyWidget):
-    def __init__(self, widgets=(), layout="horizontal"):
+class Container(widgets.EmptyWidget):
+    def __init__(self, widgets=(), layout="vertical"):
         super().__init__()
         self._widgets = dict.fromkeys(widgets)
-        self.set_layout(layout)
+        self.layout = layout
 
     def __hash__(self):
         return id(self)
 
-    def set_layout(self, layout):
-        qgl = QGridLayout()
-        for widget, args in layout:
-            qgl._mgui_add_widget(widget, *args)
-        self.native.setLayout(qgl._mgui_get_native_layout())
+    @property
+    def layout(self):
+        ...
+
+    @layout.setter
+    def layout(self, layout):
+        existing = self.native.layout()
+        if existing:
+            from qtpy.QtWidgets import QWidget
+
+            while True:
+                i = existing.takeAt(0)
+                if not i:
+                    break
+                w = i.widget()
+                if w:
+                    w.setParent(None)
+            QWidget().setLayout(existing)
+        layout.assert_alive()
+        self.native.setLayout(layout.native)
 
 
 sb1 = widgets.SpinBox(value=1)
@@ -25,7 +39,7 @@ sb3 = widgets.SpinBox(value=3)
 sb4 = widgets.SpinBox(value=4)
 sb5 = widgets.SpinBox(value=5)
 
-layout = HBoxLayout([sb1, sb2, sb3, sb4, sb5])
+layouta = HBoxLayout([sb1, sb2, sb3, sb4, sb5])
 
 layout = GridLayout(
     3,
@@ -38,6 +52,5 @@ layout = GridLayout(
         sb5: (2, slice(None)),
     },
 )
-
-c = C([sb1, sb2, sb3, sb4, sb5], layout)
+c = Container([sb1, sb2, sb3, sb4, sb5], layout)
 c.show(run=True)

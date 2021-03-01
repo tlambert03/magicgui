@@ -5,24 +5,20 @@ from itertools import product
 from typing import (
     TYPE_CHECKING,
     Collection,
-    Dict,
-    List,
+    Literal,
     MutableSequence,
-    Optional,
     Sequence,
     Tuple,
     Union,
+    cast,
     overload,
 )
 
 from magicgui.application import use_app
-from magicgui.widgets import Widget
 from magicgui.events import EventEmitter
 
-from .._bases import ButtonWidget, ValueWidget
-
 if TYPE_CHECKING:
-    from magicgui.widgets import _protocols
+    from magicgui.widgets import Widget, _protocols
 
 Index = Union[int, slice]
 Key = Tuple[Index, Index]
@@ -78,6 +74,12 @@ class _Layout(ABC):
         # left, top, right, bottom
         self._layout._mgui_set_margins(margins)
 
+    def assert_alive(self):
+        try:
+            self.native.parent()
+        except RuntimeError:
+            self._rebuild()
+
     # def __getattr__(self, name: str):
     #     """Return attribute ``name``.  Will return a widget if present."""
     #     for widget in self:
@@ -98,12 +100,12 @@ class _Layout(ABC):
     #     object.__setattr__(self, name, value)
 
 
-class _BoxLayout(_Layout, MutableSequence[Widget]):
+class _BoxLayout(_Layout, MutableSequence["Widget"]):
     _layout: _protocols.BoxLayoutProtocol
 
-    def __init__(self, widgets: Sequence[Widget], labels=False, **kwargs):
+    def __init__(self, widgets: Sequence[Widget] = (), labels=False, **kwargs):
         super().__init__(widgets=widgets, labels=labels, **kwargs)
-        self._list: List[Widget] = []
+        self._list: list[Widget] = []
 
         self.extend(widgets)
         self._unify_label_widths()
@@ -113,7 +115,7 @@ class _BoxLayout(_Layout, MutableSequence[Widget]):
         return len(self._list)
 
     @overload
-    def __getitem__(self, key: Union[int, str]) -> Widget:  # noqa: D105
+    def __getitem__(self, key: int | str) -> Widget:  # noqa: D105
         ...
 
     @overload
@@ -131,7 +133,7 @@ class _BoxLayout(_Layout, MutableSequence[Widget]):
             return getattr(item, "_inner_widget", item)
         raise TypeError(f"list indices must be integers or slices, not {type(key)}")
 
-    def __delitem__(self, key: Union[int, slice]):
+    def __delitem__(self, key: int | slice):
         """Delete a widget by integer or slice index."""
         if isinstance(key, slice):
             for item in self._list[key]:
@@ -148,6 +150,9 @@ class _BoxLayout(_Layout, MutableSequence[Widget]):
 
     def insert(self, key: int, widget: Widget):
         """Insert widget at ``key``."""
+        from .button_widget import ButtonWidget
+        from .value_widget import ValueWidget
+
         if isinstance(widget, ValueWidget):
             widget.changed.connect(lambda x: self.changed(value=self))
         _widget = widget
@@ -174,6 +179,11 @@ class _BoxLayout(_Layout, MutableSequence[Widget]):
     def _unify_label_widths(self):
         pass
 
+    def _rebuild(self):
+        self._layout = self._create_layout()
+        for i, _widget in enumerate(self):
+            self._layout._mgui_insert_widget(i, _widget)
+
 
 class HBoxLayout(_BoxLayout):
     def _create_layout(self):
@@ -189,6 +199,7 @@ class VBoxLayout(_BoxLayout):
     def _unify_label_widths(self, event=None):
         if not (self._initialized and self.labels and len(self)):
             return
+        from .button_widget import ButtonWidget
 
         measure = use_app().get_obj("get_text_width")
         widest_label = max(
@@ -200,7 +211,7 @@ class VBoxLayout(_BoxLayout):
                 labeled_widget.label_width = widest_label
 
 
-class GridLayout:
+class GridLayout(_Layout):
     """Defines a NxM grid layout of Widgets.
 
     Parameters
@@ -241,20 +252,29 @@ class GridLayout:
     ╚═══════════════════════════════╩═══════════════════════════════╝
     """
 
-    _EMPTY = "-"
-    _grid: List[List[str]]  # 2D list of widget ids
+    _layout: _protocols.GridLayoutProtocol
 
-    def __init__(self, n_rows: int, n_columns: int, widgets: Dict[Widget, Key] = {}):
+    _EMPTY: Literal["-"] = "-"
+    _grid: list[list[Literal["-"] | Widget]]  # 2D list of widgets
+
+    def __init__(
+        self, n_rows: int = 1, n_columns: int = 1, widgets: dict[Widget, Key] = {}
+    ):
+        super().__init__()
         if not all(isinstance(x, int) and x > 0 for x in (n_rows, n_columns)):
             raise TypeError("n_rows and n_columns must be positive integers")
         self._n_rows = n_rows
         self._n_columns = n_columns
-        #                    key,      (value,       (rows,       columns))
-        self._children: Dict[str, Tuple[Widget, Tuple[Collection, Collection]]] = {}
+        #                   (widget,       (rows,       columns))
+        self._children: dict[Widget, tuple[Collection, Collection]] = {}
         self.clear()
         if widgets:
             for widget, key in widgets.items():
                 self.__setitem__(key, widget)
+
+    def _create_layout(self):
+        layout = use_app().get_obj("GridLayout")
+        return layout()
 
     def clear(self):
         """Clear the grid and remove all widgets."""
@@ -262,17 +282,17 @@ class GridLayout:
         self._grid = [[self._EMPTY] * self._n_columns for i in range(self._n_rows)]
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Return shape of grid in (rows, columns)."""
         return self._n_rows, self._n_columns
 
-    def _widget_key(self, value: Widget):
-        return f"{type(value).__name__}::{id(value)}"
+    # def _widget_key(self, value: Widget):
+    #     return f"{type(value).__name__}::{id(value)}"
 
-    def _remove_widget_key(self, key: str):
-        widget, index = self._children.pop(key)
-        for r, c in product(*index):
-            self._grid[r][c] = self._EMPTY
+    # def _remove_widget_key(self, key: str):
+    #     widget, index = self._children.pop(key)
+    #     for r, c in product(*index):
+    #         self._grid[r][c] = self._EMPTY
 
     def remove_widget(self, value: Widget):
         """Remove widget wherever present in the layout.
@@ -283,13 +303,16 @@ class GridLayout:
             If the widget is not in the layout.
         """
         try:
-            self._remove_widget_key(self._widget_key(value))
+            index = self._children.pop(value)
+            for r, c in product(*index):
+                self._grid[r][c] = self._EMPTY
+            self._layout._mgui_remove_widget(value)
         except KeyError:
             raise KeyError(f"Widge {value!r} not found in {type(self).__name__}.")
 
     def _indices_from_slice(
         self, row: Index, column: Index
-    ) -> Tuple[Collection[int], Collection[int]]:
+    ) -> tuple[Collection[int], Collection[int]]:
         """Convert a two-dimensional slice to a list of rows and column indices."""
         rows: Collection[int]
         columns: Collection[int]
@@ -316,7 +339,7 @@ class GridLayout:
 
         return rows, columns
 
-    def __setitem__(self, key, value: Union[Widget, Collection[Widget]]):
+    def __setitem__(self, key, value: Widget | Collection[Widget]):
         if isinstance(key, (int, slice)):
             key = (key, slice(None))
 
@@ -339,52 +362,55 @@ class GridLayout:
                 )
             return
 
-        obj_id = self._widget_key(value) if value is not None else self._EMPTY
+        # obj_id = self._widget_key(value) if value is not None else self._EMPTY
+        obj_id = value or self._EMPTY
         for row in rows:
             for column in columns:
                 try:
-                    current_wkey = self._grid[row][column]
+                    current_widget = self._grid[row][column]
                 except IndexError:
                     raise IndexError(
                         f"index [{row}, {column}] is out of range for "
                         f"{type(self).__name__} with shape {self.shape}"
                     )
-                if current_wkey != self._EMPTY and current_wkey in self._children:
-                    self._remove_widget_key(current_wkey)
+                if current_widget != self._EMPTY and current_widget in self._children:
+                    self.remove_widget(current_widget)  # type: ignore
                 self._grid[row][column] = obj_id
 
-        self._children[obj_id] = (value, (rows, columns))
+        self._children[obj_id] = (rows, columns)
+        if obj_id is not self._EMPTY:
+            self._layout._mgui_add_widget(obj_id, *self._index2rcspan((rows, columns)))
 
-    def __getitem__(self, key) -> Optional[Widget]:
+    def __getitem__(self, key) -> Widget | None:
         if isinstance(key, (int, slice)):
             key = (key, slice(None))
 
         rows, columns = self._indices_from_slice(*key)
 
-        obj_id = None
+        obj = None
         for row in rows:
             for column in columns:
                 try:
-                    new_obj_id = self._grid[row][column]
+                    new_obj = self._grid[row][column]
                 except IndexError:
                     raise IndexError(
                         f"index [{row}, {column}] is out of range for "
                         f"{type(self).__name__} with shape {self.shape}"
                     )
-                obj_id = obj_id or new_obj_id
-                if obj_id != new_obj_id:
+                obj = obj or new_obj
+                if obj != new_obj:
                     raise ValueError(
                         "The slice spans several widgets, but "
                         "only a single widget can be retrieved "
                         "at a time"
                     )
-        if obj_id is None:
+        if obj is None:
             raise IndexError
 
-        if obj_id == self._EMPTY:
+        if obj == self._EMPTY:
             return None
 
-        return self._children[obj_id][0]
+        return cast(Widget, obj)
 
     def __delitem__(self, key):
         if isinstance(key, (int, slice)):
@@ -395,27 +421,40 @@ class GridLayout:
         for row in rows:
             for column in columns:
                 try:
-                    current_wkey = self._grid[row][column]
+                    current_widget = self._grid[row][column]
                 except IndexError:
                     raise IndexError(
                         f"index [{row}, {column}] is out of range for "
                         f"{type(self).__name__} with shape {self.shape}"
                     )
-                if current_wkey != self._EMPTY and current_wkey in self._children:
-                    self._remove_widget_key(current_wkey)
+                if current_widget != self._EMPTY and current_widget in self._children:
+                    self.remove_widget(current_widget)  # type: ignore
 
     def __repr__(self):
         return f"GridLayout {self.shape}\n" + str(self)
 
     def __str__(self):
-        cw = max(map(len, self._children))
-        return _table_repr(self._grid, ncols=self._n_columns, cell_width=cw)
+        return _table_repr(
+            self._grid,
+            ncols=self._n_columns,
+            str_func=lambda x: f"{type(x).__name__}::{x.name or id(x)}",
+        )
 
     def __iter__(self):
-        for id, (widget, (rows, cols)) in self._children.items():
-            r_start = rows.start if isinstance(rows, range) else rows[0]  # type: ignore
-            c_start = cols.start if isinstance(cols, range) else cols[0]  # type: ignore
-            yield widget, (r_start, c_start, len(rows), len(cols))
+        for widget, index in self._children.items():
+            yield widget, self._index2rcspan(index)
+
+    @staticmethod
+    def _index2rcspan(index: tuple[Collection, Collection]):
+        (rows, cols) = index
+        r_start = rows.start if isinstance(rows, range) else rows[0]
+        c_start = cols.start if isinstance(cols, range) else cols[0]
+        return r_start, c_start, len(rows), len(cols)
+
+    def _rebuild(self):
+        self._layout = self._create_layout()
+        for widget, args in self:
+            self._layout._mgui_add_widget(widget, *args)
 
 
 def _table_repr(
@@ -424,11 +463,12 @@ def _table_repr(
     ncols=None,
     cell_width=None,
     divide_rows=False,
+    str_func=str,
 ):
     """Pretty string repr of a 2D table."""
     nrows = len(data)
     ncols = ncols or len(data[0])  # type: ignore
-    cell_width = cell_width or max(len(str(item)) for row in data for item in row)
+    cell_width = cell_width or max(len(str_func(item)) for row in data for item in row)
 
     TOP = ("╔", "╤", "╗", "═")
     MID = ("╟", "┼", "╢", "─")
@@ -446,7 +486,7 @@ def _table_repr(
     body = [_border(*TOP)]
 
     for i, row in enumerate(data):
-        body.append(row_template.format(*row))
+        body.append(row_template.format(*map(str_func, row)))
         if divide_rows and i < nrows - 1:
             body.append(_border(*MID))
 
