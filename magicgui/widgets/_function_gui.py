@@ -24,7 +24,7 @@ from typing import (
 
 from psygnal import Signal
 
-from magicgui._type_wrapper import resolve_forward_refs
+from magicgui.type_map import resolve_forward_refs
 from magicgui.application import AppRef
 from magicgui.signature import MagicSignature, magic_signature
 from magicgui.widgets import Container, MainWindow, ProgressBar, PushButton

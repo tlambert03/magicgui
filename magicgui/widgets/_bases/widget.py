@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 from psygnal import Signal
 
-from magicgui._type_wrapper import resolve_forward_refs
 from magicgui.application import use_app
 from magicgui.widgets import _protocols
 
@@ -145,6 +144,8 @@ class Widget:
 
     @annotation.setter
     def annotation(self, value):
+        from magicgui.type_map import resolve_forward_refs
+
         self._annotation = resolve_forward_refs(value)
 
     @property

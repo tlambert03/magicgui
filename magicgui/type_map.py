@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime
+from functools import lru_cache
 import inspect
 import ipaddress
 import pathlib
@@ -16,6 +17,8 @@ from typing import (
     DefaultDict,
     ForwardRef,
     Mapping,
+    Optional,
+    Set,
     Type,
     TypeVar,
     Union,
@@ -25,7 +28,13 @@ from typing import (
 
 from pydantic.fields import ModelField
 from typing_extensions import Literal
-
+from pydantic.fields import (
+    SHAPE_LIST,
+    SHAPE_TUPLE,
+    SHAPE_SEQUENCE,
+    SHAPE_DEQUE,
+    SHAPE_TUPLE_ELLIPSIS,
+)
 from magicgui import widgets
 from magicgui.types import (
     PathLike,
@@ -37,7 +46,6 @@ from magicgui.types import (
 )
 from magicgui.widgets._protocols import WidgetProtocol, assert_protocol
 
-from ._type_wrapper import TypeWrapper, resolve_annotation
 
 __all__: list[str] = ["register_type", "get_widget_class"]
 
@@ -46,7 +54,18 @@ class MissingWidget(RuntimeError):
     """Raised when a backend widget cannot be found."""
 
 
-FieldType = Union[TypeWrapper, ModelField]  # TODO: remove later
+FieldType = ModelField
+
+
+
+SEQUENCE_LIKE: Set[int] = {
+    SHAPE_LIST,
+    SHAPE_TUPLE,
+    SHAPE_TUPLE_ELLIPSIS,
+    SHAPE_SEQUENCE,
+    SHAPE_DEQUE,
+}
+
 
 _RETURN_CALLBACKS: DefaultDict[type, list[ReturnCallback]] = defaultdict(list)
 _TYPE_DEFS: dict[type, WidgetTuple] = dict()
@@ -113,12 +132,12 @@ def match_type(tw: FieldType) -> WidgetTuple | None:
         return widgets.FunctionGui, {"function": tw.default}  # type: ignore
 
     # sequence of paths
-    if tw.shape in TypeWrapper.SHAPE.SEQUENCE_LIKE:
+    if tw.shape in SEQUENCE_LIKE:
         if _is_subclass(tw.type_, pathlib.Path):
             return widgets.FileEdit, {"mode": "rm"}
-        elif tw.shape == TypeWrapper.SHAPE.LIST:
+        elif tw.shape == SHAPE_LIST:
             return widgets.ListEdit, {}
-        elif tw.shape == TypeWrapper.SHAPE.TUPLE:
+        elif tw.shape == SHAPE_TUPLE:
             return widgets.TupleEdit, {}
     return None
 
@@ -162,6 +181,11 @@ def match_return_type(tw: FieldType) -> WidgetTuple | None:
     return None
 
 
+from pydantic import BaseConfig
+from pydantic.fields import Undefined
+
+from pydantic.errors import ConfigError
+
 def pick_widget_type(
     value: Any = None,
     annotation: type[Any] | FieldType | None = None,
@@ -171,16 +195,18 @@ def pick_widget_type(
     """Pick the appropriate widget type for ``value`` with ``annotation``."""
     if is_result and annotation is inspect.Parameter.empty:
         annotation = str
-    if isinstance(annotation, (ModelField, TypeWrapper)):
+    if isinstance(annotation, ModelField):
         tw = annotation
     else:
         try:
-            tw = TypeWrapper(annotation, value)
-        except ValueError:
+            try:
+                tw = _temp_field(value, annotation)
+            except TypeError:
+                tw = _temp_field_no_cache(value, annotation)
+        except ConfigError:
             if value is None:
                 return widgets.EmptyWidget, {"visible": False}
             raise
-        tw.resolve()
     options = options or {}
 
     _type = tw.outer_type_
@@ -202,7 +228,7 @@ def pick_widget_type(
 
     # look for subclasses
     for registered_type in _TYPE_DEFS:
-        if _type == registered_type or tw.is_subclass(registered_type):
+        if _type == registered_type or _is_subclass(_type, registered_type):
             _cls, opts = _TYPE_DEFS[registered_type]
             return _cls, {**options, **opts}  # type: ignore
 
@@ -360,9 +386,7 @@ def register_type(
         )
 
     def _deco(type_):
-        tw = TypeWrapper(type_)
-        tw.resolve()
-        _type_ = tw.outer_type_
+        _type_ = _temp_field(None, type_).outer_type_
 
         if return_callback is not None:
             _validate_return_callback(return_callback)
@@ -414,8 +438,7 @@ def _type2callback(type_: type) -> list[ReturnCallback]:
         return []
 
     # look for direct hits
-    tw = TypeWrapper(type_)
-    tw.resolve()
+    tw = _temp_field(None, type_)
     if tw.outer_type_ in _RETURN_CALLBACKS:
         return _RETURN_CALLBACKS[tw.outer_type_]
 
@@ -424,3 +447,93 @@ def _type2callback(type_: type) -> list[ReturnCallback]:
         if tw.is_subclass(registered_type):
             return _RETURN_CALLBACKS[registered_type]
     return []
+
+
+class Config(BaseConfig):
+    arbitrary_types_allowed = True
+
+@lru_cache
+def _temp_field(value: Any, annotation: Any) -> ModelField:
+    if annotation is inspect.Parameter.empty:
+        annotation = Undefined
+    return ModelField.infer(
+        name="_temp",
+        value=value,
+        annotation=annotation,
+        class_validators=None,
+        config=Config,
+    )
+
+def _temp_field_no_cache(value: Any, annotation: Any) -> ModelField:
+    if annotation is inspect.Parameter.empty:
+        annotation = Undefined
+    return ModelField.infer(
+        name="_temp",
+        value=value,
+        annotation=annotation,
+        class_validators=None,
+        config=Config,
+    )
+
+
+def resolve_forward_refs(annotation: Any) -> Any:
+    """Resolve forward refs in value, using TypeWrapper"""
+    if annotation in (None, inspect.Parameter.empty):
+        return annotation
+    return _temp_field(None, annotation).outer_type_
+
+
+from typing import _eval_type  # type: ignore  # noqa
+import sys
+
+def resolve_annotation(
+    annotation: Union[str, Type[Any], None, ForwardRef],
+    namespace: Optional[Mapping[str, Any]] = None,
+    *,
+    allow_import=False,
+    raise_=False,
+) -> Union[Type[Any], ForwardRef]:
+    """[summary]
+
+    part of typing.get_type_hints.
+
+    Parameters
+    ----------
+    annotation : Type[Any]
+        Type hint, string, or `None` to resolve
+    namespace : Optional[Mapping[str, Any]], optional
+        Optional namespace in which to resolve, by default None
+
+    Raises
+    ------
+    NameError
+        If the annotation cannot be resolved with the provided namespace
+    """
+    if annotation is None:
+        annotation = type(None)
+
+    if isinstance(annotation, str):
+        kwargs = dict(is_argument=False)
+        if (3, 10) > sys.version_info >= (3, 9, 8) or sys.version_info >= (3, 10, 1):
+            kwargs["is_class"] = True
+        annotation = ForwardRef(annotation, **kwargs)
+
+    try:
+        return _eval_type(annotation, namespace, None)
+    except NameError as e:
+        if allow_import:
+            # try to import the top level name and try again
+            msg = str(e)
+            if msg.startswith("name ") and msg.endswith(" is not defined"):
+                from importlib import import_module
+
+                name = msg.split()[1].strip("\"'")
+                ns = dict(namespace) if namespace else {}
+                if name not in ns:
+                    ns[name] = import_module(name)
+                    return resolve_annotation(
+                        annotation, ns, allow_import=allow_import, raise_=raise_
+                    )
+        if raise_:
+            raise
+    return annotation

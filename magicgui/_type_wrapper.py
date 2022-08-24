@@ -486,11 +486,3 @@ def display_as_type(v: Type[Any]) -> str:
     except AttributeError:
         # happens with typing objects
         return str(v).replace("typing.", "")
-
-
-def resolve_forward_refs(value: Any) -> Any:
-    """Resolve forward refs in value, using TypeWrapper"""
-    if value in (None, Parameter.empty):
-        return value
-    v = TypeWrapper(type_=value)
-    return v.outer_type_ if v.is_resolved else v.resolve()
