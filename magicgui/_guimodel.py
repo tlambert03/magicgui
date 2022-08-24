@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pydantic.dataclasses import Dataclass as PydanticDataclass
     from pydantic.fields import ModelField, UndefinedType
     from pydantic.typing import NoArgAnyCallable
-    from typing_extensions import Protocol
+    from typing_extensions import Protocol, TypeGuard
 
     class _DataclassParams:
         init: bool
@@ -446,7 +446,6 @@ def create_gui_model(
     )
 
 
-
 class BaseConfig:
     ui_layout: Optional[str] = None
 
@@ -497,7 +496,7 @@ def _get_pydantic_model(obj: Any) -> Type[BaseModel]:
     return model_cls
 
 
-TODO: enable this as a way to collect ui info from an arbitrary object
+# TODO: enable this as a way to collect ui info from an arbitrary object
 def collect_ui_info(
     obj: Union[SupportsPydantic, PythonDataclass, Type[PythonDataclass]],
 ) -> Dict[str, ResolvedUIMetadata]:
