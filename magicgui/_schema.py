@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import contextlib
+from threading import local
 import types
 import weakref
 from collections import OrderedDict, defaultdict, deque
 from copy import copy
 from dataclasses import dataclass, field, fields, replace
 from typing import (
+    TYPE_CHECKING,
     Annotated,
     Any,
     Callable,
@@ -26,6 +30,13 @@ from typing_extensions import Literal
 from magicgui._type_resolution import resolve_single_type
 from magicgui.types import JsonStringFormats, Undefined, WidgetRef, _Undefined
 from magicgui.widgets._bases.value_widget import ValueWidget
+
+if TYPE_CHECKING:
+    from attrs import Attribute
+    from pydantic.fields import ModelField
+    from dataclasses import Field
+
+    NativeField = Union[Attribute, ModelField, Field]
 
 
 @dataclass(frozen=True)
@@ -304,13 +315,14 @@ def UiField(
     orientation: Optional[Literal["horizontal", "vertical"]] = None,
     **extra,
 ) -> UiFieldInfo:
+    kwargs = locals().copy()
 
     _extra = dict(extra)
     for key in list(_extra):
         if key not in FIELDS:
             if key in ALIASES:
-                # if locals()[ALIASES[key]] is None:  # which takes precendence ?
-                locals()[ALIASES[key]] = _extra.pop(key)
+                # if kwargs[ALIASES[key]] is None:  # which takes precendence ?
+                kwargs[ALIASES[key]] = _extra.pop(key)
             elif key == "allow_multiple":
                 _extra.pop(key)
                 widget_type = "Select"
@@ -322,40 +334,8 @@ def UiField(
             else:
                 raise ValueError(f"{key} is not a valid field")
 
-    return UiFieldInfo(
-        default=default,
-        default_factory=default_factory,
-        const=const,
-        enum=enum,
-        bind=bind,
-        #
-        title=title,
-        description=description,
-        button_text=button_text,
-        #
-        multiple_of=multiple_of,
-        minimum=minimum,
-        maximum=maximum,
-        exclusive_minimum=exclusive_minimum,
-        exclusive_maximum=exclusive_maximum,
-        max_digits=max_digits,
-        decimal_places=decimal_places,
-        #
-        min_length=min_length,
-        max_length=max_length,
-        pattern=pattern,
-        format=format,
-        #
-        min_items=min_items,
-        max_items=max_items,
-        unique_items=unique_items,
-        #
-        widget_type=widget_type,
-        visible=visible,
-        enabled=enabled,
-        orientation=orientation,
-        extra=_extra,
-    )
+    kwargs["extra"] = _extra
+    return UiFieldInfo(**kwargs)
 
 
 class GUIField:
@@ -366,6 +346,7 @@ class GUIField:
         "default_factory",
         "required",
         "field_info",
+        "native",
     )
 
     def __init__(
@@ -373,10 +354,11 @@ class GUIField:
         *,
         name: str,
         type_: Type[Any],
-        default: Any = None,
+        default: Any = Undefined,
         default_factory: Optional[Callable[[], Any]] = None,
         required: Union[bool, _Undefined] = Undefined,
         field_info: Optional[UiFieldInfo] = None,
+        native: Optional[NativeField] = None,  # for native dataclass field
     ) -> None:
         self.name = name
         self.type_ = type_
@@ -384,14 +366,18 @@ class GUIField:
         self.default_factory = default_factory
         self.required = required
         self.field_info: UiFieldInfo = field_info or UiFieldInfo(default=default)
+        self.native = native
 
     def __repr__(self):
         name = self.__class__.__name__
-        args = ((k, getattr(self, k)) for k in self.__slots__)
+        # retain order
+        repr_fields = (x for x in self.__slots__ if x not in {"native"})
+        args = ((k, getattr(self, k)) for k in repr_fields)
         args = ", ".join(f"{k}={v}" for k, v in args)
         return f"{name}({args})>"
 
     def get_default(self) -> Any:
+        """Return the default value for this field."""
         return (
             _smart_deepcopy(self.default)
             if self.default_factory is None
@@ -400,7 +386,7 @@ class GUIField:
 
     @classmethod
     def infer(cls, *, name: str, value: Any, annotation: Any) -> "GUIField":
-        """Infer a `GUIField` from a variable name, annotation, and value
+        """Infer a `GUIField` from a variable name, annotation, and value.
 
         ...as would be provided in either a function signature or a class definition
 
@@ -425,12 +411,11 @@ class GUIField:
             type annotation of the variable, (might be an instance of `typing.Annotated`
             with a UiFieldInfo as the annotation)
         """
-
         field_info, value = cls._get_field_info(name, annotation, value)
         required: Union[bool, _Undefined] = Undefined
         if value is Ellipsis:
             required = True
-            value = None
+            value = Undefined
         elif value is not Undefined:
             required = False
 
@@ -494,6 +479,103 @@ class GUIField:
 
     # def build(self):
     # return self.widget_type(self.widget_kwargs)
+
+    @classmethod
+    def from_attrs_attribute(cls, attr: Attribute) -> GUIField:
+        """Create a GUIField from an attrs.Attribute."""
+        from attrs import NOTHING
+
+        default: Any = Undefined
+        factory = None
+        attr_default = attr.default
+        required = False
+        if attr_default is NOTHING:
+            required = True
+        elif hasattr(attr_default, "factory"):
+            factory = attr_default.factory  # type: ignore
+        else:
+            default = attr_default
+
+        # for attrs, you can put stuff in the metadata dict
+        field_info = UiField(default=default, default_factory=factory, **attr.metadata)
+
+        return cls(
+            name=attr.name,
+            type_=resolve_single_type(attr.type),
+            default=default,
+            default_factory=factory,
+            required=required,
+            field_info=field_info,
+            native=attr,
+        )
+
+    @classmethod
+    def from_pydantic_field(cls, field: ModelField) -> GUIField:
+        """Create a GUIField from a pydantic.Field."""
+        from pydantic.fields import Undefined as pydUndefined
+
+        default = Undefined if field.default is pydUndefined else field.default
+        if default is None and field.required:
+            default = Undefined
+
+        info = field.field_info
+        field_info = UiField(
+            default=default,
+            default_factory=field.default_factory,
+            const=info.const,
+            title=info.title,
+            description=info.description,
+            multiple_of=info.multiple_of,
+            minimum=info.ge,
+            maximum=info.le,
+            exclusive_minimum=info.gt,
+            exclusive_maximum=info.lt,
+            max_digits=info.max_digits,
+            decimal_places=info.decimal_places,
+            min_length=info.min_length,
+            max_length=info.max_length,
+            pattern=info.regex,
+            min_items=info.min_items,
+            max_items=info.max_items,
+            unique_items=info.unique_items,
+            widget_type=info.extra.get("widget_type", None),
+            visible=info.extra.get("visible", True),
+            enabled=info.extra.get("enabled", True),
+            orientation=info.extra.get("orientation", None),
+            # enum=info.enum,
+            # button_text: Optional[str] = None,
+            # **extra,
+        )
+        return cls(
+            name=field.name,
+            type_=resolve_single_type(field.annotation),
+            default=default,
+            default_factory=field.default_factory,
+            required=field.required if isinstance(field.required, bool) else Undefined,
+            field_info=field_info,
+            native=field,
+        )
+
+    @classmethod
+    def from_dataclass_field(cls, field: Field) -> GUIField:
+        """Create a GUIField from a dataclasses.Field."""
+        from dataclasses import MISSING
+
+        default = Undefined if field.default is MISSING else field.default
+        factory = None if field.default_factory is MISSING else field.default_factory
+        required = field.default is MISSING and field.default_factory is MISSING
+
+        # for dataclasses, you can put stuff in the metadata dict
+        field_info = UiField(default=default, default_factory=factory, **field.metadata)
+        return cls(
+            name=field.name,
+            type_=resolve_single_type(field.type),
+            default=default,
+            default_factory=factory,
+            required=required,
+            field_info=field_info,
+            native=field,
+        )
 
 
 # these are types that are returned unchanged by deepcopy
