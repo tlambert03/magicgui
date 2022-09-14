@@ -276,11 +276,11 @@ def UiField(
     const: bool = False,
     enum: Optional[List[Any]] = None,
     bind: Union[Callable[[ValueWidget], Any], Any, None] = None,
-    #
+    # FieldInfo
     title: Optional[str] = None,
     description: Optional[str] = None,
     button_text: Optional[str] = None,
-    #
+    # NumericContraints
     multiple_of: Optional[float] = None,
     minimum: Optional[float] = None,
     maximum: Optional[float] = None,
@@ -288,16 +288,16 @@ def UiField(
     exclusive_maximum: Optional[float] = None,
     max_digits: Optional[int] = None,
     decimal_places: Optional[int] = None,
-    #
+    # StringContraints
     min_length: Optional[int] = None,
     max_length: Optional[int] = None,
     pattern: Optional[str] = None,
     format: Optional[JsonStringFormats] = None,
-    #
+    # ArrayContraints
     min_items: Optional[int] = None,
     max_items: Optional[int] = None,
     unique_items: Optional[bool] = None,
-    #
+    # WidgetConstraints
     widget_type: Optional[WidgetRef] = None,
     visible: bool = True,
     enabled: bool = True,
@@ -359,6 +359,8 @@ def UiField(
 
 
 class GUIField:
+    """Represents a field in a GUI, perhaps in a form."""
+
     __slots__ = (
         "name",
         "type_",
@@ -392,6 +394,7 @@ class GUIField:
         return f"{name}({args})>"
 
     def get_default(self) -> Any:
+        """Return the default value for this field."""
         return (
             _smart_deepcopy(self.default)
             if self.default_factory is None
@@ -455,8 +458,40 @@ class GUIField:
 
     @staticmethod
     def _get_field_info(
-        field_name: str, annotation: Any, value: Any
+        field_name: str, annotation: Any, value: Union[UiFieldInfo, Any]
     ) -> Tuple[UiFieldInfo, Any]:
+        """Unify UiFieldInfo from a variety of sources.
+
+        - `value` can itself be an instance of `UiFieldInfo`, or a default value for the
+          field.
+        - `annotation` can be an instance of `typing.Annotated` with a `UiFieldInfo` as
+          in the annotation metadata.
+
+        Parameters
+        ----------
+        field_name : str
+            The name of the field
+        annotation : Any
+            The type annotation of the field
+        value : Any
+            The default value of the field or an instance of `UiFieldInfo`
+
+        Returns
+        -------
+        Tuple[UiFieldInfo, Any]
+            A tuple of the `UiFieldInfo` and the default value of the field.
+
+        Raises
+        ------
+        ValueError
+            If the annotation is an instance of `typing.Annotated` and the metadata
+            contains more than one `UiFieldInfo` instance.
+        ValueError
+            If the annotation is an instance of `typing.Annotated` and the metadata
+            contains a `UiFieldInfo` instance with a default value.
+        ValueError
+            If both the annotation and the value are instances of `UiFieldInfo`.
+        """
         field_info: Optional[UiFieldInfo] = None
         if get_origin(annotation) is Annotated:
             field_infos: List[UiFieldInfo] = [
@@ -466,8 +501,9 @@ class GUIField:
                 raise ValueError(
                     f"cannot specify multiple `Annotated` `UiField`s for {field_name!r}"
                 )
+            elif field_infos:
+                field_info = field_infos[0]
 
-            field_info = field_infos[0] if field_infos else None
             if field_info is not None:
                 field_info = copy(field_info)
                 if field_info.default not in (Undefined, Ellipsis):
