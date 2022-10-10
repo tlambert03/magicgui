@@ -5,7 +5,6 @@ from collections import OrderedDict, defaultdict, deque
 from copy import copy
 from dataclasses import dataclass, field, fields, replace
 from typing import (
-    Annotated,
     Any,
     Callable,
     Dict,
@@ -17,11 +16,9 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    get_args,
-    get_origin,
 )
 
-from typing_extensions import Literal
+from typing_extensions import Annotated, Literal, get_args, get_origin
 
 from magicgui._type_resolution import resolve_single_type
 from magicgui.types import JsonStringFormats, Undefined, WidgetRef, _Undefined
@@ -30,6 +27,8 @@ from magicgui.widgets._bases.value_widget import ValueWidget
 
 @dataclass(frozen=True)
 class ValueConstraints:
+    """Constraints that can be put on any widget that holds a value."""
+
     default: Any = field(
         default=Undefined,
         metadata=dict(description="The default value of the field", aliases=["value"]),
@@ -75,6 +74,8 @@ class ValueConstraints:
 
 @dataclass(frozen=True)
 class FieldInfo:
+    """Dataclass-like info associated with a field."""
+
     title: Optional[str] = field(
         default=None,
         metadata=dict(
@@ -100,6 +101,8 @@ class FieldInfo:
 
 @dataclass(frozen=True)
 class NumericContraints:
+    """Contraints that can be put on a numeric value."""
+
     multiple_of: Optional[float] = field(
         default=None,
         metadata=dict(
@@ -157,6 +160,8 @@ class NumericContraints:
 
 @dataclass(frozen=True)
 class StringContraints:
+    """Constraints that can be put on a string value."""
+
     min_length: Optional[int] = field(
         default=None,
         metadata=dict(
@@ -192,6 +197,8 @@ class StringContraints:
 
 @dataclass(frozen=True)
 class ArrayContraints:
+    """Contraints that can be put on a list or array value."""
+
     min_items: Optional[int] = field(
         default=None,
         metadata=dict(
@@ -218,6 +225,8 @@ class ArrayContraints:
 
 @dataclass(frozen=True)
 class WidgetConstraints:
+    """Constraints on the widget itself."""
+
     widget_type: Optional[WidgetRef] = field(
         default=None,
         metadata=dict(
@@ -242,7 +251,9 @@ class WidgetConstraints:
 
 @dataclass(frozen=True)
 class ContainerOptions:
-    layout: str  # for things like containers
+    """Options that pertain to a container or layout of widgets."""
+
+    layout: str
 
 
 @dataclass(frozen=True)
@@ -254,6 +265,8 @@ class UiFieldInfo(
     FieldInfo,
     ValueConstraints,
 ):
+    """Information about a field that can be used to generate a widget."""
+
     extra: dict = field(
         default_factory=dict,
         metadata=dict(description="Extra info passed to the UiField constructor"),
@@ -304,7 +317,7 @@ def UiField(
     orientation: Optional[Literal["horizontal", "vertical"]] = None,
     **extra,
 ) -> UiFieldInfo:
-
+    """Create a UiFieldInfo object, used to hold info that can create a widget."""
     _extra = dict(extra)
     for key in list(_extra):
         if key not in FIELDS:
@@ -359,7 +372,13 @@ def UiField(
 
 
 class GUIField:
-    """Represents a field in a GUI, perhaps in a form."""
+    """Represents a field in a GUI, perhaps in a form.
+
+    This class combines `UiFieldInfo` (which holds information about a widget field)
+    with an actual parameter `name` and `type_`.  It will generally be created for each
+    field in a model, or each parameter in a function, using the  the `infer`
+    classmethod, during GUIModel construction.
+    """
 
     __slots__ = (
         "name",
@@ -387,11 +406,12 @@ class GUIField:
         self.required = required
         self.field_info: UiFieldInfo = field_info or UiFieldInfo(default=default)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return string representation."""
         name = self.__class__.__name__
         args = ((k, getattr(self, k)) for k in self.__slots__)
-        args = ", ".join(f"{k}={v}" for k, v in args)
-        return f"{name}({args})>"
+        _args = ", ".join(f"{k}={v}" for k, v in args)
+        return f"{name}({_args})>"
 
     def get_default(self) -> Any:
         """Return the default value for this field."""
@@ -403,7 +423,7 @@ class GUIField:
 
     @classmethod
     def infer(cls, *, name: str, value: Any, annotation: Any) -> "GUIField":
-        """Infer a `GUIField` from a variable name, annotation, and value
+        """Infer a `GUIField` from a variable name, annotation, and value.
 
         ...as would be provided in either a function signature or a class definition
 
@@ -428,7 +448,6 @@ class GUIField:
             type annotation of the variable, (might be an instance of `typing.Annotated`
             with a UiFieldInfo as the annotation)
         """
-
         field_info, value = cls._get_field_info(name, annotation, value)
         required: Union[bool, _Undefined] = Undefined
         if value is Ellipsis:
@@ -552,7 +571,8 @@ IMMUTABLE_NON_COLLECTIONS_TYPES: Set[Type] = {
     type(Ellipsis),
 }
 
-# these are types that if empty, might be copied with simple copy() instead of deepcopy()
+# these are types that if empty,
+# might be copied with simple copy() instead of deepcopy()
 BUILTIN_COLLECTIONS: Set[Type] = {
     list,
     set,
@@ -568,7 +588,7 @@ T = TypeVar("T")
 
 
 def _smart_deepcopy(obj: T) -> T:
-    """Return type as is for immutable built-in types
+    """Return type as is for immutable built-in types.
 
     Use obj.copy() for built-in empty collections
     Use copy.deepcopy() for non-empty collections and unknown objects
@@ -581,5 +601,5 @@ def _smart_deepcopy(obj: T) -> T:
     with contextlib.suppress(TypeError, ValueError, RuntimeError):
         if obj_type in BUILTIN_COLLECTIONS and not obj:
             # faster way for empty collections, no need to copy its members
-            return obj if isinstance(obj, tuple) else obj.copy()
+            return obj if isinstance(obj, tuple) else obj.copy()  # type: ignore
     return deepcopy(obj)  # slowest way when we actually might need a deepcopy
