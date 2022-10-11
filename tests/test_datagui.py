@@ -35,7 +35,10 @@ def test_attrs_descriptor():
         b: str = attrs.field(metadata={"description": "the b"})
         c: float = attrs.field(default=0.0, metadata={"widget_type": "FloatSlider"})
 
-    assert build_gui_model(Foo) == EXPECTED
+    model = build_gui_model(Foo)
+    assert model == EXPECTED
+    for k, v in model.items():
+        v.create()
 
 
 def test_dataclass():
@@ -47,7 +50,10 @@ def test_dataclass():
         b: str = field(metadata={"description": "the b"})
         c: float = field(default=0.0, metadata={"widget_type": "FloatSlider"})
 
-    assert build_gui_model(Foo) == EXPECTED
+    model = build_gui_model(Foo)
+    assert model == EXPECTED
+    for k, v in model.items():
+        v.create()
 
 
 def test_pydantic():
@@ -56,7 +62,10 @@ def test_pydantic():
         b: str = pydantic.Field(description="the b")
         c: float = pydantic.Field(0, ui_widget_type="FloatSlider")
 
-    assert build_gui_model(Foo) == EXPECTED
+    model = build_gui_model(Foo)
+    assert model == EXPECTED
+    for k, v in model.items():
+        v.create()
 
 
 def test_named_tuple():
@@ -86,4 +95,15 @@ def test_typed_dict():
         "a": GUIField(name="a", type_=int),
         "b": GUIField(name="b", type_=str),
         "c": GUIField(name="c", type_=float),
+    }
+
+
+def test_function():
+    def foo(a: int, b: str, c: float = 0.0):
+        ...
+
+    assert build_gui_model(foo) == {
+        "a": GUIField(name="a", type_=int),
+        "b": GUIField(name="b", type_=str),
+        "c": GUIField(name="c", type_=float, default=0.0),
     }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from types import FunctionType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,6 +26,8 @@ if TYPE_CHECKING:
     import attrs
     import pydantic
     import pydantic.fields
+
+    from magicgui.widgets import Container
 
     class HasAttrs(Protocol):
         __attrs_attrs__: Tuple[attrs.Attribute, ...]
@@ -124,8 +127,27 @@ def guifield_from_pydantic(field: pydantic.fields.ModelField) -> GUIField:
     )
 
 
+def _get_function_defaults(func: FunctionType) -> Dict[str, Any]:
+    # extracted bit from inspect.signature... ~20x faster
+    pos_count = func.__code__.co_argcount
+    arg_names = func.__code__.co_varnames
+
+    defaults = func.__defaults__ or ()
+
+    non_default_count = pos_count - len(defaults)
+    positional_args = arg_names[:pos_count]
+
+    output = {
+        name: defaults[offset]
+        for offset, name in enumerate(positional_args[non_default_count:])
+    }
+    if func.__kwdefaults__:
+        output.update(func.__kwdefaults__)
+    return output
+
+
 def gui_fields_from_annotations(cls):
-    # fallback for typed dict, named tuple, etc...
+    # fallback for typed dict, named tuples, & functions
 
     annotations = getattr(cls, "__annotations__", None)
     if annotations is None:
@@ -133,15 +155,18 @@ def gui_fields_from_annotations(cls):
             f"Cannot create a GUI from object {type(cls)} without `__annotations__`"
         )
 
-    # named tuples have _fields and _field_defaults
-    field_defaults = getattr(cls, "_field_defaults", {})
+    if isinstance(cls, FunctionType):
+        defaults = _get_function_defaults(cls)
+    else:
+        # named tuples have _fields and _field_defaults
+        defaults = getattr(cls, "_field_defaults", {})
     field_names = set(cls._fields) if hasattr(cls, "_fields") else set(annotations)
 
     return {
         name: GUIField(
             name=name,
             type_=annotations[name],
-            default=field_defaults.get(name, Undefined),
+            default=defaults.get(name, Undefined),
         )
         for name in field_names
     }
@@ -150,18 +175,23 @@ def gui_fields_from_annotations(cls):
 def build_gui_model(cls: type) -> Dict[str, GUIField]:
     # TODO: cast instances to type?
 
-    if is_attrs_model(cls):
-        return {attr.name: guifield_from_attrs(attr) for attr in cls.__attrs_attrs__}
     if is_dataclass(cls):
         return {
             field.name: guifield_from_dataclass(field)
             for field in dataclasses.fields(cls)
         }
+    if is_attrs_model(cls):
+        return {attr.name: guifield_from_attrs(attr) for attr in cls.__attrs_attrs__}
     if m := get_pydantic_model(cls):
         return {
             field.name: guifield_from_pydantic(field) for field in m.__fields__.values()
         }
     return gui_fields_from_annotations(cls)
+
+
+def create_widget_from_model(model: Dict[str, GUIField]) -> Container:
+    widgets = [create_widget(field) for field in model.values()]
+    return Container(widgets=widgets)
 
 
 class DataGuiMetaclass(type):

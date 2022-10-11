@@ -23,8 +23,9 @@ from typing import (
 from typing_extensions import Annotated, Literal, get_args, get_origin
 
 from magicgui._type_resolution import resolve_single_type
-from magicgui.types import JsonStringFormats, Undefined, WidgetRef, _Undefined
+from magicgui.types import JsonStringFormats, Undefined, WidgetRef
 from magicgui.widgets._bases.value_widget import ValueWidget
+from magicgui.widgets._bases.widget import Widget
 
 if TYPE_CHECKING:
     from pydantic.fields import ModelField
@@ -429,6 +430,8 @@ class GUIField:
         # "default_factory",
         # "required",
         "field_info",
+        "_widget_class",
+        "_widget_kwargs",
     )
 
     def __init__(
@@ -453,18 +456,8 @@ class GUIField:
         if default_factory is not None:
             field_info = replace(field_info, default_factory=default_factory)
         self.field_info = field_info
-
-    @property
-    def default(self) -> Any:
-        return self.field_info.default
-
-    @property
-    def default_factory(self) -> Optional[Callable[[], Any]]:
-        return self.field_info.default_factory
-
-    @property
-    def required(self) -> bool:
-        return self.default is Undefined and self.default_factory is None
+        self._widget_class: Optional[Type[Widget]] = None
+        self._widget_kwargs: Optional[dict] = None
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -476,9 +469,16 @@ class GUIField:
     def get_default(self) -> Any:
         """Return the default value for this field."""
         return (
-            _smart_deepcopy(self.default)
-            if self.default_factory is None
-            else self.default_factory()
+            _smart_deepcopy(self.field_info.default)
+            if self.field_info.default_factory is None
+            else self.field_info.default_factory()
+        )
+
+    @property
+    def required(self) -> bool:
+        return (
+            self.field_info.default is Undefined
+            and self.field_info.default_factory is None
         )
 
     @classmethod
@@ -509,12 +509,8 @@ class GUIField:
             with a UiFieldInfo as the annotation)
         """
         field_info, value = cls._get_field_info(name, annotation, value)
-        required: Union[bool, _Undefined] = Undefined
         if value is Ellipsis:
-            required = True
-            value = None
-        elif value is not Undefined:
-            required = False
+            value = Undefined
 
         if annotation in (Undefined, None) and value is not Undefined:
             type_ = type(value)
@@ -531,7 +527,6 @@ class GUIField:
             type_=type_,
             default=value,
             default_factory=field_info.default_factory,
-            required=required,
             field_info=field_info,
         )
 
@@ -607,8 +602,60 @@ class GUIField:
         value = None if field_info.default_factory is not None else field_info.default
         return field_info, value
 
-    # def build(self):
-    # return self.widget_type(self.widget_kwargs)
+    def _update_widget_class(self) -> None:
+        """Set private widget class attributes."""
+        from dataclasses import asdict
+
+        from magicgui.type_map import get_widget_class
+
+        options = {
+            k: v
+            for k, v in asdict(self.field_info).items()
+            if k not in ("default", "default_factory", "const", "extra")
+            and v not in (None, Undefined)
+        }
+
+        self._widget_class, self._widget_kwargs = get_widget_class(
+            value=self.get_default(),
+            annotation=self.type_,
+            options=options,
+            is_result=False,
+        )
+
+    @property
+    def widget_class(self):
+        """Return the widget type for this field."""
+        if getattr(self, "_widget_class", None) is None:
+            self._update_widget_class()
+        return self._widget_class
+
+    @property
+    def widget_kwargs(self):
+        """Return the widget kwargs for this field."""
+        if getattr(self, "_widget_kwargs", None) is None:
+            self._update_widget_class()
+        return self._widget_kwargs
+
+    def create(self, value=Undefined, **kwargs):
+        """Create a new widget instance for this field.
+
+        Parameters
+        ----------
+        value : Any, optional
+            Optional override to the default value of the widget.
+        kwargs : dict, optional
+            Additional keyword arguments to pass to the widget constructor.
+        """
+        kwargs = {
+            **self.widget_kwargs,
+            "name": self.name,
+            "annotation": self.type_,
+            **kwargs,
+        }
+        value = self.get_default() if value is Undefined else value
+        if value is not Undefined:
+            kwargs["value"] = value
+        return self.widget_class(**kwargs)
 
     def __eq__(self, __o: object) -> bool:
         # sourcery skip: assign-if-exp

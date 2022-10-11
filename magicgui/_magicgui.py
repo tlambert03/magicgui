@@ -3,8 +3,8 @@ from __future__ import annotations
 import inspect
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable
-from magicgui.types import Undefined
 
+from magicgui.types import Undefined
 from magicgui.widgets import FunctionGui, MainFunctionGui
 
 if TYPE_CHECKING:
@@ -258,8 +258,6 @@ def _infer_model(obj, param_options: dict = {}) -> None:
     from dataclasses import replace
     from inspect import signature
 
-    from rich import print
-
     from ._schema import GUIField, UiField, UiFieldInfo
 
     _fields = {}
@@ -275,7 +273,7 @@ def _infer_model(obj, param_options: dict = {}) -> None:
                 value = UiField(**options)
         else:
             value = param.default
-        
+
         annotation = Undefined if param.annotation is param.empty else param.annotation
         field = GUIField.infer(name=name, value=value, annotation=annotation)
         _fields[name] = field
