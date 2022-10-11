@@ -5,11 +5,13 @@ from collections import OrderedDict, defaultdict, deque
 from copy import copy
 from dataclasses import dataclass, field, fields, replace
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     ForwardRef,
     List,
+    Mapping,
     Optional,
     Set,
     Tuple,
@@ -23,6 +25,9 @@ from typing_extensions import Annotated, Literal, get_args, get_origin
 from magicgui._type_resolution import resolve_single_type
 from magicgui.types import JsonStringFormats, Undefined, WidgetRef, _Undefined
 from magicgui.widgets._bases.value_widget import ValueWidget
+
+if TYPE_CHECKING:
+    from pydantic.fields import ModelField
 
 
 @dataclass(frozen=True)
@@ -272,6 +277,43 @@ class UiFieldInfo(
         metadata=dict(description="Extra info passed to the UiField constructor"),
     )
 
+    @classmethod
+    def from_dataclass_metadata(cls, metadata: Mapping, **kwargs) -> "UiFieldInfo":
+        return UiField(**{**metadata, **kwargs})
+
+    @classmethod
+    def from_pydantic_field(cls, field: "ModelField") -> "UiFieldInfo":
+        """Create a UiFieldInfo from a pydantic Field."""
+        extra: dict = field.field_info.extra
+        for key in list(extra):
+            if key.startswith("ui_"):
+                extra[key[3:]] = extra.pop(key)
+
+        default = field.default
+        if default is None and field.required:
+            default = Undefined
+
+        return UiField(
+            default=default,
+            default_factory=field.default_factory,
+            description=field.field_info.description,
+            title=field.field_info.title,
+            const=field.field_info.const or False,
+            minimum=field.field_info.ge,
+            maximum=field.field_info.le,
+            exclusive_minimum=field.field_info.gt,
+            exclusive_maximum=field.field_info.lt,
+            multiple_of=field.field_info.multiple_of,
+            min_length=field.field_info.min_length,
+            max_length=field.field_info.max_length,
+            pattern=field.field_info.regex,
+            # format=...,
+            min_items=field.field_info.min_items,
+            max_items=field.field_info.max_items,
+            unique_items=field.field_info.unique_items,
+            **extra,
+        )
+
 
 FIELDS: Set[str] = set()
 ALIASES: Dict[str, str] = {}
@@ -383,9 +425,9 @@ class GUIField:
     __slots__ = (
         "name",
         "type_",
-        "default",
-        "default_factory",
-        "required",
+        # "default",
+        # "default_factory",
+        # "required",
         "field_info",
     )
 
@@ -394,17 +436,35 @@ class GUIField:
         *,
         name: str,
         type_: Type[Any],
-        default: Any = None,
+        default: Any = Undefined,
         default_factory: Optional[Callable[[], Any]] = None,
-        required: Union[bool, _Undefined] = Undefined,
         field_info: Optional[UiFieldInfo] = None,
     ) -> None:
         self.name = name
         self.type_ = type_
-        self.default = default
-        self.default_factory = default_factory
-        self.required = required
-        self.field_info: UiFieldInfo = field_info or UiFieldInfo(default=default)
+
+        if field_info is None:
+            field_info = UiFieldInfo(default=default, default_factory=default_factory)
+        elif not isinstance(field_info, UiFieldInfo):
+            raise TypeError(f"field_info must be a UiFieldInfo, not {type(field_info)}")
+
+        if default is not Undefined:
+            field_info = replace(field_info, default=default)
+        if default_factory is not None:
+            field_info = replace(field_info, default_factory=default_factory)
+        self.field_info = field_info
+
+    @property
+    def default(self) -> Any:
+        return self.field_info.default
+
+    @property
+    def default_factory(self) -> Optional[Callable[[], Any]]:
+        return self.field_info.default_factory
+
+    @property
+    def required(self) -> bool:
+        return self.default is Undefined and self.default_factory is None
 
     def __repr__(self) -> str:
         """Return string representation."""
@@ -549,6 +609,12 @@ class GUIField:
 
     # def build(self):
     # return self.widget_type(self.widget_kwargs)
+
+    def __eq__(self, __o: object) -> bool:
+        # sourcery skip: assign-if-exp
+        if not isinstance(__o, GUIField):
+            return NotImplemented
+        return all(getattr(self, k) == getattr(__o, k) for k in self.__slots__)
 
 
 # these are types that are returned unchanged by deepcopy
