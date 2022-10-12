@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Protocol
 import attrs
 import pydantic
 
-from magicgui._datagui import GuiBuilder, build_gui_model
-from magicgui._schema import GUIField, UiFieldInfo
+from magicgui._datagui._datagui import GuiBuilder, build_gui_model
+from magicgui._datagui._schema import GUIField, UiFieldInfo
 
 if TYPE_CHECKING:
 

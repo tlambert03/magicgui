@@ -1,24 +1,15 @@
 from __future__ import annotations
 
 import dataclasses
+import sys
 from types import FunctionType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Tuple, Type, TypeVar
 
 from typing_extensions import TypeGuard
 
-from ._schema import GUIField, UiFieldInfo
-from .types import Undefined
+from ..types import Undefined
+from ._gui_field import GUIField
+from ._schema import UiFieldInfo
 
 if TYPE_CHECKING:
     from typing import Protocol
@@ -44,28 +35,33 @@ def create_widget(obj):
     ...
 
 
-def is_dataclass(cls: type) -> bool:
-    return dataclasses.is_dataclass(cls)
+def is_dataclass(obj: Any) -> bool:
+    return dataclasses.is_dataclass(obj)
 
 
-def get_pydantic_model(cls: type) -> Optional[pydantic.BaseModel]:
-    try:
-        import pydantic.fields
-    except ImportError:
-        return None
-
-    fields = getattr(cls, "__fields__", None)
-    if isinstance(fields, dict) and all(
-        isinstance(f, pydantic.fields.ModelField) for f in fields.values()
-    ):
-        return cast("pydantic.BaseModel", cls)
-    if hasattr(cls, "__pydantic_model__"):
-        return get_pydantic_model(cls.__pydantic_model__)
-    return None
+def is_attrs_model(obj: Any) -> TypeGuard[HasAttrs]:
+    return getattr(obj, "__attrs_attrs__", None) is not None
 
 
-def is_attrs_model(cls: type) -> TypeGuard[HasAttrs]:
-    return getattr(cls, "__attrs_attrs__", None) is not None
+def is_pydantic_model(obj: Any):
+    pydantic = sys.modules.get("pydantic")
+    if pydantic is None:
+        return False
+    if isinstance(obj, pydantic.BaseModel):
+        return True
+    if hasattr(obj, "__pydantic_model__"):
+        return is_pydantic_model(obj.__pydantic_model__)
+    return False
+
+
+def get_pydantic_model(cls: type) -> pydantic.BaseModel:
+    pydantic = sys.modules.get("pydantic")
+    if pydantic is not None:
+        if isinstance(cls, pydantic.BaseModel):
+            return cls
+        elif hasattr(cls, "__pydantic_model__"):
+            return get_pydantic_model(cls.__pydantic_model__)  # type: ignore
+    raise TypeError(f"{cls} is not a pydantic model")
 
 
 def guifield_from_attrs(attr: attrs.Attribute) -> GUIField:
@@ -95,6 +91,7 @@ def guifield_from_dataclass(field: dataclasses.Field) -> GUIField:
         if field.default_factory is not dataclasses.MISSING
         else None
     )
+    GUIField.infer(field.type)
 
     return GUIField(
         name=field.name,
@@ -103,19 +100,6 @@ def guifield_from_dataclass(field: dataclasses.Field) -> GUIField:
             field.metadata, default=default, default_factory=default_factory
         ),
     )
-
-
-def guifield_from_pydantic(field: pydantic.fields.ModelField) -> GUIField:
-
-    return GUIField(
-        name=field.name,
-        type_=field.outer_type_,
-        field_info=UiFieldInfo.from_pydantic_field(field),
-    )
-
-
-def is_typed_named_tuple(cls: type) -> bool:
-    return hasattr(cls, "__annotations__") and hasattr(cls, "_fields")
 
 
 def guifield_from_pydantic(field: pydantic.fields.ModelField) -> GUIField:
@@ -172,6 +156,11 @@ def gui_fields_from_annotations(cls):
     }
 
 
+def _has_field_info(obj: Any) -> bool:
+    """Return True if the object can be mined for field info."""
+    return is_dataclass(obj) or is_attrs_model(obj) or is_pydantic_model(obj)
+
+
 def build_gui_model(cls: type) -> Dict[str, GUIField]:
     # TODO: cast instances to type?
 
@@ -182,7 +171,11 @@ def build_gui_model(cls: type) -> Dict[str, GUIField]:
         }
     if is_attrs_model(cls):
         return {attr.name: guifield_from_attrs(attr) for attr in cls.__attrs_attrs__}
-    if m := get_pydantic_model(cls):
+    try:
+        m = get_pydantic_model(cls)
+    except TypeError:
+        pass
+    else:
         return {
             field.name: guifield_from_pydantic(field) for field in m.__fields__.values()
         }
