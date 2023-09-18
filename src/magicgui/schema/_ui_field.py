@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import dataclasses as dc
 import sys
-import warnings
 from dataclasses import dataclass, field
 from functools import lru_cache
 from types import FunctionType
@@ -24,17 +23,9 @@ from typing_extensions import Annotated, get_args, get_origin
 from magicgui.types import JsonStringFormats, Undefined, _Undefined
 
 if TYPE_CHECKING:
-    from typing import Mapping, Protocol
-
-    import attrs
-    from annotated_types import BaseMetadata
+    from typing import Mapping
 
     from magicgui.widgets.bases import ContainerWidget, ValueWidget
-
-    class HasAttrs(Protocol):
-        """Protocol for objects that have an ``attrs`` attribute."""
-
-        __attrs_attrs__: tuple[attrs.Attribute, ...]
 
 
 __all__ = ["build_widget", "get_ui_fields", "UiField"]
@@ -361,36 +352,6 @@ class UiField(Generic[T]):
         """Whether the field is an Annotated type."""
         return get_origin(self.type) is Annotated
 
-    def parse_annotated(self) -> UiField[T]:
-        """Extract info from Annotated type if present, and return new field.
-
-        If self.type is not an Annotated type, return self.
-        """
-        if not self.is_annotated_type:
-            return self
-
-        kwargs = _uikwargs_from_annotated_type(self.type)
-
-        if (
-            self.default is not Undefined
-            and kwargs.get("default", Undefined) is not Undefined
-        ):
-            warnings.warn(
-                "Cannot set default value in both type annotation and field. Overriding"
-                f" default {kwargs['default']} with {self.default} in field "
-                f"{self.name!r}",
-                stacklevel=2,
-            )
-            kwargs.pop("default", None)
-        if self.name is not None and kwargs.get("name") is not None:
-            warnings.warn(
-                "Cannot set name in both type annotation and field. Overriding"
-                f" name {kwargs['name']!r} with {self.name!r} in field {self.name!r}",
-                stacklevel=2,
-            )
-            kwargs.pop("name", None)
-        return dc.replace(self, **kwargs)
-
     def create_widget(self, value: T | _Undefined = Undefined) -> ValueWidget[T]:
         """Create a new Widget for this field."""
         from magicgui.type_map import get_widget_class
@@ -419,11 +380,7 @@ class UiField(Generic[T]):
             "widget": "widget_type",
         }
 
-        d = (
-            self.parse_annotated()
-            .replace(_native_field=None)
-            .asdict(include_unset=False)
-        )
+        d = self.replace(_native_field=None).asdict(include_unset=False)
         opts = {_name_map[k]: v for k, v in d.items() if k in _name_map}
         if "disabled" in d:
             opts["enabled"] = not d["disabled"]
@@ -453,191 +410,6 @@ for field_info in dc.fields(UiField):
         _UI_FIELD_ALIASES[alias] = field_info.name
 
 
-def _rename_aliases(input: dict[str, Any]) -> dict[str, Any]:
-    """Rename any aliases in the input dict to their accepted names."""
-    return {_UI_FIELD_ALIASES.get(k, k): v for k, v in input.items()}
-
-
-def _uikwargs_from_annotated_type(hint: Any) -> dict[str, Any]:
-    """Convert an Annotated type to a dict of UiField kwargs."""
-    # hint must be an Annotated[...] type
-
-    annotated_types = sys.modules.get("annotated_types")
-    base_metas: list[BaseMetadata] = []
-
-    origin, *metadata = get_args(hint)
-    kwargs = {}
-    for item in metadata:
-        if isinstance(item, UiField):
-            kwargs.update(item.asdict(include_unset=False))
-        elif annotated_types is not None:
-            # annotated_types >= 0.3.0 is supported
-            if isinstance(item, annotated_types.BaseMetadata):
-                base_metas.append(item)
-            elif isinstance(item, annotated_types.GroupedMetadata):
-                base_metas.extend(item)
-        # TODO: support pydantic.fields.FieldInfo?
-        # TODO: support re.Pattern?
-
-    if base_metas:
-        _annotated_kwargs = {}
-        for i in base_metas:
-            _annotated_kwargs.update(dc.asdict(i))
-        if "max_exclusive" in _annotated_kwargs:
-            _annotated_kwargs["max_items"] = _annotated_kwargs.pop("max_exclusive") - 1
-        kwargs.update(_rename_aliases(_annotated_kwargs))
-
-    kwargs.update({"type": origin, "_original_annotation": hint})
-    return kwargs
-
-
-# def _uifield_from_dataclass(field: dc.Field) -> UiField:
-#     """Create a UiField from a dataclass field."""
-#     default = field.default if field.default is not dc.MISSING else Undefined
-#     dfactory = (
-#         field.default_factory if field.default_factory is not dc.MISSING else None
-#     )
-#     extra = {k: v for k, v in field.metadata.items() if k in _UI_FIELD_NAMES}
-
-#     return UiField(
-#         name=field.name,
-#         type=field.type,
-#         default=default,
-#         default_factory=dfactory,
-#         _native_field=field,
-#         **extra,
-#     )
-
-
-# def _uifield_from_attrs(field: Attribute) -> UiField:
-#     """Create a UiField from an attrs field."""
-#     from attrs import NOTHING, Factory
-
-#     default = field.default if field.default is not NOTHING else Undefined
-#     default_factory = None
-#     if isinstance(default, Factory):
-#         default_factory = default.factory
-#         default = Undefined
-
-#     extra = {k: v for k, v in field.metadata.items() if k in _UI_FIELD_NAMES}
-
-#     return UiField(
-#         name=field.name,
-#         type=field.type,
-#         default=default,
-#         default_factory=default_factory,
-#         _native_field=field,
-#         **extra,
-#     )
-
-
-# def _uifield_from_pydantic1(model_field: ModelField) -> UiField:
-#     """Create a UiField from a pydantic ModelField."""
-#     from pydantic.fields import SHAPE_SINGLETON
-#     from pydantic.fields import Undefined as PydanticUndefined
-
-#     finfo = model_field.field_info
-
-#     _extra_dict = finfo.extra.copy()
-#     # backport from pydantic2
-#     if "json_schema_extra" in _extra_dict:
-#         _extra_dict.update(_extra_dict.pop("json_schema_extra"))
-
-#     extra = {k: v for k, v in _extra_dict.items() if k in _UI_FIELD_NAMES}
-#     const = finfo.const if finfo.const not in (None, PydanticUndefined) else Undefined
-#     default = (
-#         Undefined if finfo.default in (PydanticUndefined, Ellipsis) else finfo.default
-#     )
-
-#     nullable = None
-#     if model_field.allow_none and (
-#         model_field.shape != SHAPE_SINGLETON or not model_field.sub_fields
-#     ):
-#         nullable = True
-
-#     return UiField(
-#         name=model_field.name,
-#         title=finfo.title,
-#         description=finfo.description,
-#         default=default,
-#         default_factory=model_field.default_factory,
-#         type=model_field.outer_type_,
-#         nullable=nullable,
-#         const=const,
-#         minimum=finfo.ge,
-#         maximum=finfo.le,
-#         exclusive_minimum=finfo.gt,
-#         exclusive_maximum=finfo.lt,
-#         multiple_of=finfo.multiple_of,
-#         min_length=finfo.min_length,
-#         max_length=finfo.max_length,
-#         pattern=finfo.regex,
-#         # format=finfo.format,
-#         min_items=finfo.min_items,
-#         max_items=finfo.max_items,
-#         unique_items=finfo.unique_items,
-#         _native_field=model_field,
-#         **extra,
-#     )
-
-
-# def _uifield_from_pydantic2(finfo: FieldInfo, name: str) -> UiField:
-#     """Create a UiField from a pydantic ModelField."""
-#     import annotated_types as at
-#     from pydantic_core import PydanticUndefined
-
-#     if isinstance(finfo.json_schema_extra, dict):
-#         extra = {
-#             k: v for k, v in finfo.json_schema_extra.items() if k in _UI_FIELD_NAMES
-#         }
-#     else:
-#         extra = {}
-#     default = (
-#         Undefined if finfo.default in (PydanticUndefined, Ellipsis) else finfo.default
-#     )
-
-#     nullable = None
-#     if get_origin(finfo.annotation) is Union and any(
-#         i for i in get_args(finfo.annotation) if i is type(None)
-#     ):
-#         nullable = True
-
-#     restrictions: dict = {}
-#     for meta in finfo.metadata:
-#         if isinstance(meta, at.Ge):
-#             restrictions["minimum"] = meta.ge
-#         elif isinstance(meta, at.Gt):
-#             restrictions["exclusive_minimum"] = meta.gt
-#         elif isinstance(meta, at.Le):
-#             restrictions["maximum"] = meta.le
-#         elif isinstance(meta, at.Lt):
-#             restrictions["exclusive_maximum"] = meta.lt
-#         elif isinstance(meta, at.MultipleOf):
-#             restrictions["multiple_of"] = meta.multiple_of
-#         elif isinstance(meta, at.MinLen):
-#             restrictions["min_length"] = meta.min_length
-#         elif isinstance(meta, at.MaxLen):
-#             restrictions["max_length"] = meta.max_length
-#         elif hasattr(meta, "__dict__"):
-#             # PydanticGeneralMetadata
-#             restrictions["pattern"] = meta.__dict__.get("pattern")
-
-#     return UiField(
-#         name=name,
-#         title=finfo.title,
-#         description=finfo.description,
-#         default=default,
-#         default_factory=finfo.default_factory,
-#         type=finfo.annotation,
-#         nullable=nullable,
-#         # const=const,
-#         **restrictions,
-#         # format=finfo.format,
-#         _native_field=finfo,
-#         **extra,
-#     )
-
-
 # TODO:
 class _ContainerFields:
     autofocus: str | None = field(
@@ -651,22 +423,6 @@ class _ContainerFields:
             "will be labeled. If a list, only the fields in the list will be labeled."
         },
     )
-
-
-# def _is_attrs_model(obj: Any) -> TypeGuard[HasAttrs]:
-#     return getattr(obj, "__attrs_attrs__", None) is not None
-
-
-# def _get_pydantic_model(cls: type) -> type[pydantic.BaseModel] | None:
-#     pydantic = sys.modules.get("pydantic")
-#     if pydantic is not None:
-#         if isinstance(cls, type) and issubclass(cls, pydantic.BaseModel):
-#             return cls
-#         elif isinstance(cls, pydantic.BaseModel):
-#             return type(cls)
-#         elif hasattr(cls, "__pydantic_model__"):
-#             return _get_pydantic_model(cls.__pydantic_model__)
-#     return None
 
 
 def _get_function_defaults(func: FunctionType) -> dict[str, Any]:
@@ -692,7 +448,6 @@ def _get_function_defaults(func: FunctionType) -> dict[str, Any]:
 def _ui_fields_from_annotation(cls: type) -> Iterator[UiField]:
     """Iterate UiFields extracted from object __annotations__."""
     # fallback for typed dict, named tuples, & functions
-
     annotations: dict = getattr(cls, "__annotations__", {})
     if not annotations and isinstance(annotations, dict):  # pragma: no cover
         raise TypeError(
@@ -712,7 +467,7 @@ def _ui_fields_from_annotation(cls: type) -> Iterator[UiField]:
             type=annotations.get(name),
             default=defaults.get(name, Undefined),
         )
-        yield field.parse_annotated()
+        yield field
 
 
 def _iter_ui_fields(obj: Any) -> Iterator[UiField]:
@@ -725,11 +480,23 @@ def _iter_ui_fields(obj: Any) -> Iterator[UiField]:
     else:
         for f in fields_:
             extra = {k: v for k, v in f.metadata.items() if k in _UI_FIELD_NAMES}
-            description = f.description or extra.pop("description", None)
+            extra.setdefault("description", f.description)
+            if f.constraints:
+                extra["minimum"] = f.constraints.ge
+                extra["maximum"] = f.constraints.le
+                extra["exclusive_minimum"] = f.constraints.gt
+                extra["exclusive_maximum"] = f.constraints.lt
+                extra["multiple_of"] = f.constraints.multiple_of
+                extra["decimal_places"] = f.constraints.decimal_places
+                extra["pattern"] = f.constraints.pattern
+
+                # TODO: fix use of min_items above
+                extra["min_length"] = f.constraints.min_length
+                extra["max_length"] = f.constraints.max_length
+
             ui_field = UiField(
                 name=f.name,
                 type=f.type,
-                description=description,
                 default=Undefined if f.default in (f.MISSING, None) else f.default,
                 default_factory=(
                     None if f.default_factory is f.MISSING else f.default_factory
@@ -737,37 +504,8 @@ def _iter_ui_fields(obj: Any) -> Iterator[UiField]:
                 _native_field=f.native_field,
                 **extra,
             )
-            yield ui_field.parse_annotated()
+            yield ui_field
         return
-
-    # # check if it's a pydantic model
-    # model = _get_pydantic_model(object)
-    # if model is not None:
-    #     if hasattr(model, "model_fields"):
-    #         for name, field_info in model.model_fields.items():
-    #             yield _uifield_from_pydantic2(field_info, name)
-    #     else:
-    #         for pf in model.__fields__.values():
-    #             yield _uifield_from_pydantic1(pf)
-    #     return
-
-    # if hasattr(object, "__pydantic_fields__"):
-    #     # pydantic2 style dataclass
-    #     for name, field_info in object.__pydantic_fields__.items():
-    #         yield _uifield_from_pydantic2(field_info, name)
-    #     return
-
-    # # check if it's a (non-pydantic) dataclass
-    # if dc.is_dataclass(object):
-    #     for df in dc.fields(object):
-    #         yield _uifield_from_dataclass(df)
-    #     return
-
-    # # check if it's an attrs class
-    # if _is_attrs_model(object):
-    #     for af in object.__attrs_attrs__:
-    #         yield _uifield_from_attrs(af)
-    #     return
 
     # fallback to looking at __annotations__ (named tuple, typed dict, function)
     if hasattr(obj, "__annotations__"):
