@@ -18,7 +18,7 @@ on:
 jobs:
   test:
     name: Test
-    uses: pyapp-kit/.github/.github/workflows/reusable-ci.yml@main
+    uses: pyapp-kit/workflows/.github/workflows/test-pyrepo.yml@main
     strategy:
       fail-fast: false
       matrix:
